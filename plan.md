@@ -170,10 +170,10 @@ El archivo `bot_data.db` almacenará el historial completo para auditoría y rec
 
 - [x]  Script para descargar historial de 10,000+ velas.
 - [x]  Generación de features técnicos con [ta](https://github.com/bukosabino/ta) (sustituto de pandas-ta, abandonado).
-- [ ]  Entrenamiento con **validación walk-forward** (no split aleatorio) para evitar data leakage.
-- [ ]  Generar **curva de calibración de probabilidades** para determinar el umbral real de confianza.
-- [ ]  **Análisis de feature importance con SHAP** para entender qué variables impulsan el modelo.
-- [ ]  Exportación del modelo a archivo `.pkl` con registro en tabla `model_versions`.
+- [x]  Entrenamiento con **validación walk-forward** (no split aleatorio) para evitar data leakage.
+- [x]  Generar **curva de calibración de probabilidades** para determinar el umbral real de confianza.
+- [x]  **Análisis de feature importance con SHAP** para entender qué variables impulsan el modelo.
+- [x]  Exportación del modelo a archivo `.pkl` con registro en tabla `model_versions`.
 
 ### Fase 3: Base de Datos y Backtesting
 

@@ -11,8 +11,10 @@ Bot autónomo en **Python** para opciones binarias en **Exnova**, con modelo de 
 ## Estado del Proyecto
 
 - **Fase 1 — Entorno y Menú:** ✅ completa (`BrokerClient` abstracto, `ExnovaAdapter`, menú interactivo Normal/OTC, conexión DEMO validada).
-- **Fase 2 — Machine Learning:** 🔄 en curso (descarga de historial ✅, features técnicos ✅, entrenamiento walk-forward pendiente).
+- **Fase 2 — Machine Learning:** ✅ completa (walk-forward, calibración, SHAP, export `.pkl`, features MTLF multi-timeframe).
 - **Fases 3-6:** Base de datos/backtesting, integración DEMO, despliegue, dashboard.
+
+> ⚠️ **Hallazgo Fase 2 (importante):** el backtest con features técnicos 5m da ~50% accuracy y **expectancy negativa** (−0.08 a −0.17 con payout 80%). **No hay edge confirmado con técnicos.** Ver `bot/ml/backtest.py` / `calibrate.py`. La literatura (random walk) respalda esto para forex real L-V. Posible vía con respaldo académico (Springer 2025): sentimiento con LLM + XGBoost.
 
 Detalle completo: [plan.md](plan.md) (roadmap, arquitectura de 3 capas, reglas de riesgo, esquema de BD).
 
@@ -24,10 +26,33 @@ Detalle completo: [plan.md](plan.md) (roadmap, arquitectura de 3 capas, reglas d
 | Conexión Broker | `BrokerClient` + `ExnovaAdapter` (websocket-client) |
 | Análisis Técnico | pandas + `ta` |
 | IA de Señales | XGBoost (.pkl) |
-| IA Macro | Gemini 2.0 Flash Lite |
-| BD | SQLite3 |
-| Notificaciones | Bot de Telegram |
 | Validación | scikit-learn (TimeSeriesSplit / walk-forward) |
+| Persistencia | SQLite3 (model_versions) |
+
+## Pipeline ML (Fase 2)
+
+```bash
+# 1) Features técnicos (16 col)
+uv run python -m bot.scripts.build_features --in data/5m/EURUSD.csv
+
+# 2) Entrenamiento walk-forward (OOS)
+uv run python -m bot.ml.train --in data/5m/EURUSD.features.csv
+
+# 3) Curva de calibración + guarda predicciones OOS
+uv run python -m bot.ml.calibrate --in data/5m/EURUSD.features.csv
+
+# 4) Backtest real (expectancy, PnL, maxDD)
+uv run python -m bot.ml.backtest --in data/5m/EURUSD.features.csv --payout 0.80
+
+# 5) Importancia de features (SHAP)
+uv run python -m bot.ml.shap_analysis --in data/5m/EURUSD.features.csv
+
+# 6) Exportar modelo final .pkl (registra en SQLite)
+uv run python -m bot.ml.export_model --in data/5m/EURUSD.features.csv --out models/eurusd_5m.pkl
+
+# 7) Features multi-timeframe MTLF (15m/1h, anti-leakage)
+uv run python -m bot.ml.multi_tf --in data/5m/EURUSD.csv --out data/5m/EURUSD.mtl.csv
+```
 
 ## Instalación
 
@@ -63,13 +88,15 @@ uv run python -m bot.scripts.build_features --in data/5m/EURUSD.csv --out data/5
 ```text
 bot/
 ├── broker/       # Interfaz abstracta BrokerClient + adaptadores (Exnova)
-├── ml/           # Machine Learning: features (train.py, model.py futuros)
+├── ml/           # ML: features, multi_tf, train, calibrate, backtest, shap, export
 ├── scripts/      # CLIs (fetch_history, build_features)
 ├── vendor/       # Librería exnovaapi de terceros (no tocar)
+├── db.py         # SQLite (model_versions; trade_logs en Fase 3)
 ├── config.py     # Credenciales desde .env
 ├── history.py    # Descarga de velas con paginación
 └── menu.py       # Menú interactivo de inicio
 data/             # Velas CSV descargadas y features generados
+models/           # Modelos XGBoost exportados (.pkl)
 main.py           # Entry point
 plan.md           # Roadmap y decisiones de arquitectura
 ```

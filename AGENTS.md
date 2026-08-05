@@ -7,7 +7,8 @@ Guía para agentes de IA y colaboradores que trabajan en este repositorio.
 Bot autónomo de opciones binarias en Exnova, en Python. Proyecto educativo/de portafolio — **no es fuente de ingresos**. Proyecto completo y decisiones de arquitectura en **`plan.md`** (fuente única de verdad; léelo antes de hacer cambios de alcance).
 
 - Fase 1 (entorno, menú, BrokerClient/ExnovaAdapter) **completa**.
-- Fase 2 (Machine Learning) **en curso**: historial ✅, features ✅, entrenamiento walk-forward pendiente.
+- Fase 2 (Machine Learning) **completa**: entrenamiento walk-forward, calibración, SHAP, export `.pkl`. Historial ✅, features ✅.
+- **Estado de señal (importante):** el backtest con 5m + features técnicos da ~50% accuracy y **expectancy negativa** (−0.08 a −0.17 con payout 80%). **No hay edge confirmado** a día de hoy. Ver resultados en `calibrate.py`/`backtest.py` antes de asumir que el modelo aporta valor.
 
 ## Entorno
 
@@ -23,6 +24,14 @@ uv add <paquete>                 # añadir dependencia
 uv run python -m bot.scripts.build_features --in data/5m/EURUSD.csv
 uv run python -m bot.scripts.fetch_history --pair EURUSD --timeframe 5m --count 10000
 uv run python main.py            # menú interactivo (requiere .env)
+
+# Pipeline ML (Fase 2)
+uv run python -m bot.ml.train --in data/5m/EURUSD.features.csv        # walk-forward
+uv run python -m bot.ml.calibrate --in data/5m/EURUSD.features.csv   # curva calibración + guarda OOS
+uv run python -m bot.ml.backtest --in data/5m/EURUSD.features.csv --payout 0.80
+uv run python -m bot.ml.shap_analysis --in data/5m/EURUSD.features.csv
+uv run python -m bot.ml.export_model --in data/5m/EURUSD.features.csv --out models/eurusd_5m.pkl
+uv run python -m bot.ml.multi_tf --in data/5m/EURUSD.csv --out data/5m/EURUSD.mtl.csv  # features MTLF
 ```
 
 Verificar imports tras mover archivos: `uv run python -c "from <modulo> import ..."`.
@@ -38,21 +47,29 @@ Verificar imports tras mover archivos: `uv run python -c "from <modulo> import .
 ```text
 bot/
 ├── broker/       # BrokerClient (base.py) + ExnovaAdapter (exnova.py)
-├── ml/           # features.py (16 columnas, lib ta); train.py/model.py futuros
+├── ml/           # features.py (16 col, lib ta); multi_tf.py (MTLF 15m/1h);
+│                 # train.py, calibrate.py, backtest.py, shap_analysis.py, export_model.py
 ├── scripts/      # fetch_history.py, build_features.py (CLIs con --in/--out)
 ├── vendor/       # exnovaapi (terceros, no tocar)
+├── db.py         # SQLite: tabla model_versions (register_model); trade_logs pendiente (Fase 3)
 ├── config.py     # lee .env, valida credenciales
 ├── history.py    # fetch_candle_history (paginación 1000/batch)
 └── menu.py       # choose_market / choose_assets
-data/5m/          # EURUSD.csv, EURUSD.features.csv
+data/5m/          # EURUSD.csv, EURUSD.features.csv, EURUSD.features.oos.csv, EURUSD.mtl.csv
+models/           # eurusd_5m.pkl (modelo exportado)
+bot_data.db       # SQLite (model_versions; trade_logs en Fase 3)
 ```
 
 ## Datos y ML
 
 - Features: `build_features()` (bot/ml/features.py) → 16 columnas (`FEATURE_COLUMNS`). Las ~49 primeras filas tienen NaN de warm-up (EMA50/ATR14) — aplicar `dropna()` en entrenamiento.
+- Features MTLF: `multi_tf.py` resamplea 5m→15m/1h con `merge_asof` **solo velas superiores cerradas** (anti-leakage). `MTL_COLUMNS` = `FEATURE_COLUMNS` + 8 de tendencia.
+- `train.feature_columns(df)` detecta las columnas presentes (base o MTLF) — no hardcodear.
 - `ta` sustituye a `pandas-ta` (abandonado, no soporta py3.14). No intentes reintroducirlo.
-- El target (dirección vela t+1) se construye en la tarea de entrenamiento, no en features.
-- Validación: **walk-forward (TimeSeriesSplit), nunca split aleatorio** — evita data leakage.
+- El target (dirección vela t+1) se construye en la tarea de entrenamiento (`train.build_target`), no en features.
+- Validación: **walk-forward (TimeSeriesSplit), nunca split aleatorio** — evita data leakage. `walk_forward` además devuelve predicciones OOS concatenadas (usa `backtest`/`calibrate`).
+- Backtest (`backtest.py`) simula cuenta: CALL si proba>=0.5, resuelve con vela t+1, pnl con `--payout`. Espera: expectancy = win×payout − (1−win). Con payout 0.80 se necesita win > 55.6% para no perder.
+- OOS de un run se guarda en `EURUSD.features.oos.csv` (y_true + y_prob) — reutilizable sin re-entrenar.
 
 ## Credenciales
 
