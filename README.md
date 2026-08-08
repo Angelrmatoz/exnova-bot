@@ -87,11 +87,10 @@ uv run python -m bot.scripts.build_features --in data/5m/EURUSD.csv --out data/5
 
 ```text
 bot/
-├── broker/       # Interfaz abstracta BrokerClient + adaptadores (Exnova)
+├── broker/       # Interfaz abstracta BrokerClient + adaptadores (Exnova, Mock) + ExnovaWSClient
 ├── ml/           # ML: features, multi_tf, train, calibrate, backtest, shap, export
-├── scripts/      # CLIs (fetch_history, build_features)
-├── vendor/       # Librería exnovaapi de terceros (no tocar)
-├── db.py         # SQLite (model_versions; trade_logs en Fase 3)
+├── scripts/      # CLIs (fetch_history, build_features, backtest_mock)
+├── db.py         # SQLite (model_versions; trade_logs)
 ├── config.py     # Credenciales desde .env
 ├── history.py    # Descarga de velas con paginación
 └── menu.py       # Menú interactivo de inicio
@@ -103,7 +102,7 @@ plan.md           # Roadmap y decisiones de arquitectura
 
 ## Convenciones
 
-- El núcleo del bot **nunca importa `exnovaapi` directamente** — solo habla con `BrokerClient`. Cambiar de bróker = escribir un adaptador nuevo en `bot/broker/`.
+- La conexión con Exnova se hace vía `ExnovaWSClient` (cliente WebSocket propio en `bot/broker/exnova_ws.py`); el vendor `exnovaapi` fue eliminado. El núcleo solo habla con `BrokerClient`. Cambiar de bróker = escribir un adaptador nuevo en `bot/broker/`.
 - Credenciales **solo** vía variables de entorno / `.env` (excluido de git). Nunca hardcodeadas.
 - `ta` sustituye a `pandas-ta` (abandonado, no soporta Python 3.14).
 - Instrucciones para agentes de IA: ver [AGENTS.md](AGENTS.md).

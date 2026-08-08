@@ -9,6 +9,8 @@ Desarrollar un bot autónomo en **Python** para opciones binarias en la platafor
 > 
 
 > 🔄 **Nota sobre el bróker:** Exnova **no cuenta con regulación de organismos reconocidos** (CySEC, FCA, CNMV) y existen reportes públicos de problemas con retiros. Por tanto, el bróker se trata como una **dependencia intercambiable**, no como un componente fijo del sistema. El núcleo analítico debe funcionar independientemente del bróker conectado. Adicionalmente, en modo OTC los precios son generados por un algoritmo propietario del bróker (no representan mercado real), por lo que el rendimiento del modelo en OTC debe registrarse y evaluarse por separado del rendimiento en mercado Normal, y **no debe considerarse comparable ni extrapolable entre ambos**.
+>
+> ⚠️ **Sobre el vendor `exnovaapi`:** era un **port de bajo nivel** (linaje `iqoptionapi`), sin tipos, sin tests, estado global mutable (`global_value`), ~55 handlers por mensaje, `dict_queue_add` O(n), crash en el stream all-size de velas y `ACTIVES` hardcodeado. Fue **eliminado** y reemplazado por el cliente WS propio `ExnovaWSClient` (Fase 3.5). La resolución del feed (1 mensaje/seg) es límite del servidor, no de la librería.
 > 
 
 ---
@@ -30,7 +32,7 @@ Al ejecutar el bot, el programa mostrará un **menú interactivo en consola** an
 | Componente | Tecnología | Función Principal |
 | --- | --- | --- |
 | Lenguaje | Python 3.10+ | Entorno principal del sistema |
-| Conexión Broker | BrokerClient + ExnovaAdapter (websocket-client) | Gestión de sesión, recepción de velas y órdenes, desacoplada del bróker específico |
+| Conexión Broker | BrokerClient + ExnovaAdapter (websocket-client) → `ExnovaWSClient` propio (Fase 3.5) | Gestión de sesión, recepción de velas 1s y órdenes, desacoplada del bróker específico |
 | Análisis Técnico | pandas + ta | Procesamiento de datos y cálculo de indicadores (RSI, EMA, MACD) |
 | IA de Señales (Capa 2) | XGBoost (.pkl) | Inferencia local ultra rápida (< 50 ms) para predecir la dirección de la vela |
 | IA Macro (Capa 1) | Gemini 2.0 Flash Lite API | Evaluación de noticias en tiempo real con Grounding Search (solo Mercado Real) |
@@ -177,12 +179,25 @@ El archivo `bot_data.db` almacenará el historial completo para auditoría y rec
 
 ### Fase 3: Base de Datos y Backtesting
 
-- [ ]  Crear módulo de conexión y tablas en SQLite.
-- [ ]  Construir script de backtesting considerando la curva histórica de Payouts.
+- [x]  Crear módulo de conexión y tablas en SQLite.
+- [x]  Construir script de backtesting considerando la curva histórica de Payouts.
 - [x]  ~~Construir capa de abstracción BrokerClient~~ ✅ Movido a Fase 1.
-- [ ]  Implementar un segundo adaptador de prueba (`MockBrokerAdapter`) para backtesting sin conexión real.
+- [x]  Implementar un segundo adaptador de prueba (`MockBrokerAdapter`) para backtesting sin conexión real.
+
+### Fase 3.5: API Exnova propia (desacoplar del vendor)
+
+> 🔧 **Motivación:** `bot/vendor/exnovaapi` es un port de bajo nivel sin mantenimiento (ver nota de arquitectura). No se puede confiar en él para operación continua 24/7 (reconexión, heartbeat, stream de velas). Se sustituye por un cliente WebSocket mínimo, propio, tipado y testeado que implemente **solo** lo que el bot usa. El núcleo sigue desacoplado: `ExnovaAdapter` no cambia su contrato `BrokerClient`.
+
+- [x] Auditar qué superficie real de `exnovaapi` usa `ExnovaAdapter` (auth, `get_balance`, histórico de velas, stream de velas, compra/venta, resultado) — hecho.
+- [x] Implementar `bot/broker/exnova_ws.py` (`ExnovaWSClient`): auth por SSID, saldo multi-cuenta (`account_type`), histórico de velas con paginación, stream de velas, compra/venta, confirmación de orden y resultado, heartbeat Ping/Pong.
+- [x] Reconexión con **exponential backoff** (2s→4s→8s→… hasta 30s) (Resiliencia, §6).
+- [x] Migrar `ExnovaAdapter` de `exnovaapi` a `ExnovaWSClient` manteniendo el mismo contrato (sin import de vendor; balance por `account_type`; `check_connect`; resolución tolerante de activos).
+- [x] **Eliminar** `bot/vendor/exnovaapi` — hecho (sin imports activos desde el núcleo).
+- [x] Validar paridad: `tests/test_exnova_adapter_integration.py` + `tests/test_exnova_ws_*.py`. Todo verde (45 tests).
 
 ### Fase 4: Integración y Pruebas en DEMO
+
+> ⚠️ La **Fase 3.5** (cliente Exnova propio) debe completarse **antes** de operación continua en demo: no se hace 24/7 sobre el vendor de bajo nivel.
 
 - [ ]  Integrar el módulo asíncrono de Gemini Flash Lite (Capa 1).
 - [ ]  Unir las 3 capas en el bucle principal.

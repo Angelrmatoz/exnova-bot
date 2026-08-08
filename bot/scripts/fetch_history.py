@@ -24,10 +24,11 @@ def main() -> int:
     parser.add_argument("timeframe", help="Temporalidad, ej: 1m, 5m, 1h")
     parser.add_argument("target", type=int, help="Velas a descargar (10_000+)")
     parser.add_argument("--out", default=None, help="Ruta CSV de salida")
+    parser.add_argument("--market", default="NORMAL", choices=["NORMAL", "OTC"], help="Tipo de mercado (NORMAL u OTC)")
     args = parser.parse_args()
 
     creds = exnova_credentials()
-    broker = ExnovaAdapter(creds["email"], creds["password"], creds["account_type"])
+    broker = ExnovaAdapter(creds["email"], creds["password"], creds["account_type"], market_type=args.market)
     ok, reason = broker.connect()
     if not ok:
         print(f"Error conectando: {reason}")

@@ -26,21 +26,32 @@ def feature_columns(df: pd.DataFrame) -> list[str]:
     return [c for c in MTL_COLUMNS if c in df.columns] or [c for c in FEATURE_COLUMNS if c in df.columns]
 
 
-def build_target(df: pd.DataFrame) -> pd.Series:
-    """Dirección de la vela t+1: 1 si sube, 0 si baja."""
-    return (df["close"].shift(-1) > df["close"]).astype(int)
+def build_target(df: pd.DataFrame, horizon: int = 1) -> pd.Series:
+    """Dirección a `horizon` velas adelante: 1 si sube, 0 si baja."""
+    return (df["close"].shift(-1 * horizon) > df["close"]).astype(int)
 
 
-def walk_forward(df: pd.DataFrame, n_splits: int = 5) -> tuple[list[float], list[float], pd.Series, pd.Series]:
+def walk_forward(
+    df: pd.DataFrame,
+    n_splits: int = 5,
+    train_window: int | None = None,
+    horizon: int = 1,
+    embargo: int = 0,
+) -> tuple[list[float], list[float], pd.Series, pd.Series]:
     cols = feature_columns(df)
     X = df[cols].dropna()
-    y = build_target(df).loc[X.index].dropna()
+    y = df["y"] if "y" in df.columns else build_target(df, horizon=horizon)
+    y = y.loc[X.index].dropna()
     X = X.loc[y.index]
 
     tss = TimeSeriesSplit(n_splits=n_splits)
     accs, losses = [], []
     y_oos, proba_oos = [], []
     for train_i, test_i in tss.split(X):
+        if train_window is not None:
+            train_i = train_i[-train_window:]
+        if embargo > 0:
+            train_i = train_i[:-embargo]
         model = XGBClassifier(n_estimators=300, learning_rate=0.05, eval_metric="logloss", verbosity=0)
         model.fit(X.iloc[train_i], y.iloc[train_i])
         proba = model.predict_proba(X.iloc[test_i])[:, 1]

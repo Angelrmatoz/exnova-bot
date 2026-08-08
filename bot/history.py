@@ -12,6 +12,7 @@ cómo leer del adaptador).
 from __future__ import annotations
 
 import csv
+import time
 from pathlib import Path
 from typing import Callable
 
@@ -22,9 +23,11 @@ _BATCH = 1000
 def fetch_candle_history(
     getter: Callable[[int, int | None], list[dict]],
     target: int,
+    delay: float = 0.2,
 ) -> list[dict]:
     """Descarga velas hacia atrás hasta reunir `target` velas (deduplicadas).
 
+    `delay` espacia las peticiones (segundos) para no golpear la API seguido.
     Devuelve lista de dicts {time, open, close, high, low} en orden antiguo->nuevo.
     """
     seen: list[dict] = []
@@ -43,6 +46,8 @@ def fetch_candle_history(
         if cut is not None and oldest >= cut:
             break  # la API no avanzó; no hay más historial disponible
         cut = oldest
+        if delay:
+            time.sleep(delay)
     seen.sort(key=lambda c: c["time"])
     return seen[:target]
 

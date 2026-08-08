@@ -32,32 +32,35 @@ uv run python -m bot.ml.backtest --in data/5m/EURUSD.features.csv --payout 0.80
 uv run python -m bot.ml.shap_analysis --in data/5m/EURUSD.features.csv
 uv run python -m bot.ml.export_model --in data/5m/EURUSD.features.csv --out models/eurusd_5m.pkl
 uv run python -m bot.ml.multi_tf --in data/5m/EURUSD.csv --out data/5m/EURUSD.mtl.csv  # features MTLF
+
+# Backtest sin conexión (Fase 3)
+uv run python -m bot.scripts.backtest_mock --pairs data/5m/EURUSD.csv,data/5m/GBPUSD.csv   # mock broker + trade_logs
+uv run python -m bot.scripts.backtest_mock --pairs data/5m/EURUSD.csv --payouts payouts.csv  # curva de payouts por par
 ```
 
 Verificar imports tras mover archivos: `uv run python -c "from <modulo> import ..."`.
 
 ## Arquitectura (reglas no negociables)
 
-- **Nunca importes `exnovaapi` fuera de `bot/broker/exnova.py`.** El núcleo solo conoce `BrokerClient` (`bot/broker/base.py`). Cambiar de bróker = nuevo adaptador, nada más.
-- `bot/vendor/exnovaapi/` es librería de terceros copiada — **no la modifiques**.
+- La conexión con Exnova es vía `ExnovaWSClient` (cliente WebSocket propio en `bot/broker/exnova_ws.py`). El vendor `exnovaapi` fue **eliminado** — no reintroducirlo. El núcleo solo conoce `BrokerClient` (`bot/broker/base.py`). Cambiar de bróker = nuevo adaptador, nada más.
 - La lógica pura (features, history, ML) no importa el bróker; recibe datos vía parámetros/callables.
 
 ## Estructura
 
 ```text
 bot/
-├── broker/       # BrokerClient (base.py) + ExnovaAdapter (exnova.py)
+├── broker/       # BrokerClient (base.py), MockBrokerAdapter (mock.py),
+│                 # ExnovaAdapter (exnova.py), ExnovaWSClient (exnova_ws.py)
 ├── ml/           # features.py (16 col, lib ta); multi_tf.py (MTLF 15m/1h);
 │                 # train.py, calibrate.py, backtest.py, shap_analysis.py, export_model.py
-├── scripts/      # fetch_history.py, build_features.py (CLIs con --in/--out)
-├── vendor/       # exnovaapi (terceros, no tocar)
-├── db.py         # SQLite: tabla model_versions (register_model); trade_logs pendiente (Fase 3)
+├── scripts/      # fetch_history.py, build_features.py (CLIs con --in/--out); backtest_mock.py
+├── db.py         # SQLite: model_versions (register_model); trade_logs (log_trade/log_trades) + get_today_pnl/get_loss_streak
 ├── config.py     # lee .env, valida credenciales
 ├── history.py    # fetch_candle_history (paginación 1000/batch)
 └── menu.py       # choose_market / choose_assets
 data/5m/          # EURUSD.csv, EURUSD.features.csv, EURUSD.features.oos.csv, EURUSD.mtl.csv
 models/           # eurusd_5m.pkl (modelo exportado)
-bot_data.db       # SQLite (model_versions; trade_logs en Fase 3)
+bot_data.db       # SQLite (model_versions; trade_logs)
 ```
 
 ## Datos y ML
