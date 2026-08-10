@@ -148,6 +148,20 @@ def test_socket_option_closed_loose():
     assert pnl == pytest.approx(-1.0)
 
 
+def test_socket_option_closed_flat_fields():
+    """Frame real de Exnova: win/sum/win_amount directos, sin msg anidado."""
+    c = client_factory()
+    feed(c, "socket-option-closed", {
+        "id": "op-8b",
+        "win": "loose",
+        "sum": 1.0,
+        "win_amount": 0,
+    })
+    win, pnl = c.check_result("op-8b", timeout=1)
+    assert win == "loose"
+    assert pnl == pytest.approx(-1.0)
+
+
 def test_socket_option_closed_equal_zero():
     c = client_factory()
     feed(c, "socket-option-closed", {

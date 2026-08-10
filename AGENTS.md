@@ -4,10 +4,11 @@ Guía para agentes de IA y colaboradores que trabajan en este repositorio.
 
 ## Proyecto
 
-Bot autónomo de opciones binarias en Exnova, en Python. Proyecto educativo/de portafolio — **no es fuente de ingresos**. Proyecto completo y decisiones de arquitectura en **`plan.md`** (fuente única de verdad; léelo antes de hacer cambios de alcance).
+Bot autónomo de opciones binarias en Exnova, en Python. Proyecto de operación seria — la señal debe demostrar edge antes de operar capital real. Proyecto completo y decisiones de arquitectura en **`plan.md`** (fuente única de verdad; léelo antes de hacer cambios de alcance).
 
 - Fase 1 (entorno, menú, BrokerClient/ExnovaAdapter) **completa**.
 - Fase 2 (Machine Learning) **completa**: entrenamiento walk-forward, calibración, SHAP, export `.pkl`. Historial ✅, features ✅.
+- Fase 3.6 (segundo bróker) **completa**: IQ Option con `IqOptionAdapter` + `IqOptionWSClient` (misma familia Quadcode, auth por ssid de navegador). Validado end-to-end en DEMO real. El bróker no aporta precisión al modelo — solo transporte de datos y ejecución.
 - **Estado de señal (importante):** el backtest con 5m + features técnicos da ~50% accuracy y **expectancy negativa** (−0.08 a −0.17 con payout 80%). **No hay edge confirmado** a día de hoy. Ver resultados en `calibrate.py`/`backtest.py` antes de asumir que el modelo aporta valor.
 
 ## Entorno
@@ -16,6 +17,7 @@ Bot autónomo de opciones binarias en Exnova, en Python. Proyecto educativo/de p
 - SO Windows; shell PowerShell 7 (`pwsh`). Evita heredocs bash — escribe un script temporal si necesitas bloques multi-línea.
 - `plan.md` usa LF. Respeta el estilo de archivo existente.
 - Clave del layout de imports: corre siempre desde la raíz del repo (`uv run python -m ...`), nunca desde `bot/`.
+- Tests: `uv run pytest tests` (95 tests verdes; `pythonpath=["."]` ya configurado en pyproject.toml).
 
 ## Comandos
 
@@ -42,7 +44,8 @@ Verificar imports tras mover archivos: `uv run python -c "from <modulo> import .
 
 ## Arquitectura (reglas no negociables)
 
-- La conexión con Exnova es vía `ExnovaWSClient` (cliente WebSocket propio en `bot/broker/exnova_ws.py`). El vendor `exnovaapi` fue **eliminado** — no reintroducirlo. El núcleo solo conoce `BrokerClient` (`bot/broker/base.py`). Cambiar de bróker = nuevo adaptador, nada más.
+- La conexión con el bróker es vía cliente WebSocket propio: `ExnovaWSClient` (`bot/broker/exnova_ws.py`) e `IqOptionWSClient` (`bot/broker/iqoption_ws.py`, auth por **ssid** de navegador — el login HTTP de IQ responde 403). El vendor `exnovaapi` fue **eliminado** — no reintroducirlo. El núcleo solo conoce `BrokerClient` (`bot/broker/base.py`). Cambiar de bróker = nuevo adaptador, nada más.
+- `IqOptionAdapter.place_order` es el único que debe llamar `IqOptionWSClient.buy()`: `buy` devuelve tupla `(ok, order_id)`. No usar `buy()` directo como order_id (el id va dentro de la tupla).
 - La lógica pura (features, history, ML) no importa el bróker; recibe datos vía parámetros/callables.
 
 ## Estructura
@@ -50,16 +53,19 @@ Verificar imports tras mover archivos: `uv run python -c "from <modulo> import .
 ```text
 bot/
 ├── broker/       # BrokerClient (base.py), MockBrokerAdapter (mock.py),
-│                 # ExnovaAdapter (exnova.py), ExnovaWSClient (exnova_ws.py)
+│                 # ExnovaAdapter (exnova.py), ExnovaWSClient (exnova_ws.py),
+│                 # IqOptionAdapter (iqoption.py), IqOptionWSClient (iqoption_ws.py)
 ├── ml/           # features.py (16 col, lib ta); multi_tf.py (MTLF 15m/1h);
 │                 # train.py, calibrate.py, backtest.py, shap_analysis.py, export_model.py
 ├── scripts/      # fetch_history.py, build_features.py (CLIs con --in/--out); backtest_mock.py
 ├── db.py         # SQLite: model_versions (register_model); trade_logs (log_trade/log_trades) + get_today_pnl/get_loss_streak
-├── config.py     # lee .env, valida credenciales
+├── config.py     # lee .env, valida credenciales (Exnova + IQ Option)
 ├── history.py    # fetch_candle_history (paginación 1000/batch)
 └── menu.py       # choose_market / choose_assets
 data/5m/          # EURUSD.csv, EURUSD.features.csv, EURUSD.features.oos.csv, EURUSD.mtl.csv
 models/           # eurusd_5m.pkl (modelo exportado)
+tests/            # pytest: wsutil.py (helpers WS), iq_mock.py (mock server IQ), conftest.py
+                  # test_exnova_ws_*.py, test_iqoption_ws_*.py, test_iqoption_adapter_integration.py
 bot_data.db       # SQLite (model_versions; trade_logs)
 ```
 

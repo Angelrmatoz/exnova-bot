@@ -1,10 +1,10 @@
 # Exnova Bot
 
-Bot autónomo en **Python** para opciones binarias en **Exnova**, con modelo de Machine Learning de ultra baja latencia (**XGBoost**), filtrado macro con IA (**Gemini**), gestión estricta de riesgo y persistencia en **SQLite**.
+Bot autónomo en **Python** para opciones binarias en **Exnova**, con modelo de Machine Learning de ultra baja latencia (**XGBoost**), gestión estricta de riesgo y persistencia en **SQLite**.
 
-> 🎓 **Propósito principal:** ejercicio de **aprendizaje aplicado** — ML sobre series temporales, Pandas, ingeniería de features y auditoría de modelos. Sirve como **proyecto de portafolio para transición hacia Analista de Datos**, no como fuente de ingresos.
+> 🎯 **Propósito:** sistema autónomo de trading de opciones binarias en Exnova e IQ Option — ML (XGBoost), gestión estricta de riesgo, auditoría en SQLite. Proyecto de operación seria. La señal debe demostrar edge (expectancy positiva) antes de operar capital real.
 
-> ⚠️ **Advertencia de Riesgo:** las opciones binarias son instrumentos de alto riesgo. Proyecto técnico/educativo. Opera siempre en **DEMO** primero y nunca inviertas capital que no puedas permitirte perder.
+> ⚠️ **Advertencia de Riesgo:** las opciones binarias son instrumentos de alto riesgo. Opera siempre en **DEMO** primero, con montos pequeños, y nunca inviertas capital que no puedas permitirte perder.
 
 > 🔄 **Nota sobre el bróker:** Exnova **no tiene regulación reconocida** (CySEC, FCA, CNMV). Se trata como una **dependencia intercambiable**: el núcleo analítico funciona independientemente del bróker conectado.
 
@@ -16,7 +16,7 @@ Bot autónomo en **Python** para opciones binarias en **Exnova**, con modelo de 
 
 > ⚠️ **Hallazgo Fase 2 (importante):** el backtest con features técnicos 5m da ~50% accuracy y **expectancy negativa** (−0.08 a −0.17 con payout 80%). **No hay edge confirmado con técnicos.** Ver `bot/ml/backtest.py` / `calibrate.py`. La literatura (random walk) respalda esto para forex real L-V. Posible vía con respaldo académico (Springer 2025): sentimiento con LLM + XGBoost.
 
-Detalle completo: [plan.md](plan.md) (roadmap, arquitectura de 3 capas, reglas de riesgo, esquema de BD).
+Detalle completo: [plan.md](plan.md) (roadmap, arquitectura de 2 capas, reglas de riesgo, esquema de BD).
 
 ## Stack
 

@@ -21,6 +21,7 @@ import pandas as pd
 
 from bot.broker.mock import MockBrokerAdapter
 from bot.db import log_trades
+from bot.session import signal_for
 
 
 def load_payouts(path: str | None) -> dict[str, float]:
@@ -28,14 +29,6 @@ def load_payouts(path: str | None) -> dict[str, float]:
         return {}
     df = pd.read_csv(path)
     return dict(zip(df["pair"], df["payout"]))
-
-
-def signal_for(close: float, open_: float) -> tuple[str, float]:
-    """Dirección + confianza proxy de la última vela cerrada."""
-    direction = "call" if close > open_ else "put"
-    magnitude = abs(close - open_) / open_
-    confidence = min(0.5 + magnitude, 0.99)
-    return direction, confidence
 
 
 def main() -> None:

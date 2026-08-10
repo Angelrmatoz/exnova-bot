@@ -4,7 +4,9 @@ Contexto de la sesión para continuar en otro chat. Leer **`plan.md`** (fuente �
 
 ## Proyecto
 
-Bot autónomo de opciones binarias en Python. **Educativo/de portafolio, NO es fuente de ingresos.**
+Bot autónomo de opciones binarias en Python. **Proyecto de operación seria — la señal debe demostrar edge (expectancy positiva) antes de operar capital real.**
+
+**Nota (última sesión):** se **eliminó Gemini del plan** (filtrado macro con IA descartado — sin edge predictivo no aporta nada). Arquitectura reducida de 3 → **2 capas** (Señal + Ejecución). Las vars `GEMINI_*` quedan en `.env` como config inofensiva.
 
 ## Entorno
 
@@ -27,7 +29,7 @@ Bot autónomo de opciones binarias en Python. **Educativo/de portafolio, NO es f
 - **Fase 2** ✅ — ML (walk-forward, calibración, SHAP, export .pkl). Historial y features listos.
 - **Fase 3** ✅ — SQLite (`trade_logs`), `MockBrokerAdapter`, `backtest_mock.py`. Completada hoy (ver abajo).
 - **Fase 3.5** ✅ — cliente WebSocket Exnova propio (`ExnovaWSClient`): SSID auth, saldo multi-cuenta por `account_type`, histórico paginado, stream de velas, buy/sell, confirmación y resultado, Ping/Pong, reconexión con exponential backoff (2s→30s). `ExnovaAdapter` migrado del vendor, sin imports de `exnovaapi`. Paridad cubierta por tests (45 tests, suite verde). **Requisito antes de operar 24/7 en demo** — no se opera continuo sobre el vendor de bajo nivel.
-- **Fase 4** ⏳ — integrar Gemini Flash Lite (Capa 1), unir las 3 capas en el bucle principal, validar **150 operaciones en mercado Normal + 150 en OTC** (por separado). Solo validación preliminar, no garantía de cuenta real.
+- **Fase 4** ⏳ — unir las 2 capas en el bucle principal, validar **150 operaciones en mercado Normal + 150 en OTC** (por separado). Solo validación preliminar, no garantía de cuenta real.
 - **Fase 5** ⏳ — Dockerfile + docker-compose, despliegue en Oracle Cloud Free Tier.
 - **Fase 6** ⏳ — dashboard (Streamlit/Plotly Dash) sobre `bot_data.db`: PnL acumulado, win rate por par, calibración confianza vs resultado, máximo drawdown.
 
@@ -35,20 +37,33 @@ Bot autónomo de opciones binarias en Python. **Educativo/de portafolio, NO es f
 
 Backtest 5m + features técnicos da **~50% accuracy y expectativa negativa** (−0.08 a −0.17 con payout 0.80). **No hay edge confirmado.** No asumir que el modelo aporta valor sin verlo.
 
+**Barridos completos (todos sin edge a día de hoy):**
+- **27 configs ML** (5m/15m/1h × horizon 1/2/4 × EURUSD/GBPUSD/USDJPY): todo ~50%.
+- **9 filtros RSI** (20/80, 30/70, 10/90): sin edge.
+- **24 configs Fibonacci** con pivotes de swing (0.382–0.786 × CALL/PUT × 3 pares, 5m): sin edge. El "FIFO 61.8% funciona" solo con lookahead (pivote confirmado sin leakage = ~50%).
+- **72 configs Fibonacci con anclas max/min absolutos** de ventana rodante (3 pares × W 50/100/288 × 4 niveles × CALL/PUT, 5m): mejor 54.2%, sin edge.
+- **Fibonacci 1m en OTC real de IQ** (1000 velas EURUSD-OTC): sin confirmación ~50%. **Con vela de confirmación** (pin bar / engulfing) el winrate sube: pin bar 0.382 → 55.9% (34 trades, exp +0.006), 0.786 any → **61.3%** (31 trades, exp +0.103). ⚠️ **Muestra demasiado pequeña para declarar edge** (error estándar ±9%); probamos 12 combos, saldrán falsos positivos por azar.
+
+**Lección clave de las fuentes:** el retroceso Fibonacci **nunca se opera solo** — hay que esperar **vela de confirmación** (pin bar, engulfing) al tocar el nivel. Ese es el filtro discrecional que el usuario aplica a ojo y que los tests mecánicos sin confirmación no capturan. Sigue siendo hipótesis no confirmada: se necesitan 300-500 trades confirmados (≈10k velas 1m OTC, ~7 días) para poder estadístico.
+
 ## Estructura
 
 ```text
 bot/
-├── broker/       # base.py (BrokerClient), exnova_ws.py (ExnovaWSClient propio), exnova.py (ExnovaAdapter vía ExnovaWSClient), mock.py (MockBrokerAdapter)
+├── broker/       # base.py (BrokerClient), factory.py (build_broker por operador),
+│                 # exnova_ws.py (ExnovaWSClient propio), exnova.py (ExnovaAdapter vía ExnovaWSClient),
+│                 # iqoption_ws.py (IqOptionWSClient propio), iqoption.py (IqOptionAdapter),
+│                 # mock.py (MockBrokerAdapter)
 ├── ml/           # features.py (16 col, lib `ta`), multi_tf.py (MTLF 15m/1h, merge_asof solo velas cerradas),
 │                 # train.py (walk-forward, feature_columns detecta base/MTLF), calibrate.py, backtest.py,
 │                 # shap_analysis.py, export_model.py
 ├── scripts/      # fetch_history.py, build_features.py, backtest_mock.py
 ├── db.py         # SQLite: model_versions (register_model); trade_logs (log_trade, log_trades,
 │                 #   get_today_pnl, get_loss_streak)
-├── config.py     # lee .env y valida credenciales
+├── config.py     # lee .env; exnova_credentials, iqoption_credentials (solo ssid obligatorio),
+│                 #   configured_brokers (lista operadores listos para el menú)
 ├── history.py    # fetch_candle_history (paginación 1000/batch)
-└── menu.py       # choose_market / choose_assets
+└── menu.py       # choose_broker (operador desde configured_brokers) / choose_market / choose_assets
 data/5m/          # EURUSD.csv, GBPUSD.csv, USDJPY.csv; .features.csv; .features.oos.csv; .mtl.csv
 models/           # eurusd_5m.pkl
 bot_data.db       # SQLite (model_versions; trade_logs)
@@ -67,8 +82,23 @@ uv run python -m bot.ml.export_model --in data/5m/EURUSD.features.csv --out mode
 uv run python -m bot.ml.multi_tf --in data/5m/EURUSD.csv --out data/5m/EURUSD.mtl.csv
 uv run python -m bot.scripts.backtest_mock --pairs data/5m/EURUSD.csv,data/5m/GBPUSD.csv
 uv run python -m bot.scripts.backtest_mock --pairs data/5m/EURUSD.csv --payouts payouts.csv
-uv run python main.py   # menú interactivo, requiere .env
+uv run python main.py   # menú interactivo (elige operador → mercado → divisas), requiere .env
 ```
+
+## Última entrega (CLI multi-bróker + experimentos Fibonacci)
+
+**CLI multi-bróker (Fase 1, `main.py`):**
+- `bot/config.py` — `configured_brokers()` lista operadores con credenciales completas en `.env` (exnova si email+password, iqoption si ssid). `iqoption_credentials()` ahora **solo exige el ssid** (email/password opcionales; antes exigía los 4 y rompía si faltaba alguno).
+- `bot/broker/factory.py` (nuevo) — `build_broker(name, market_type)` devuelve `ExnovaAdapter` o `IqOptionAdapter`; núcleo sigue sin conocerlos.
+- `bot/menu.py` — `choose_broker()` lee `configured_brokers()` y deja elegir (1. Exnova, 2. IQ Option, ...) dinámicamente, no hardcodeado.
+- `main.py` — flujo: `choose_broker() → choose_market() → build_broker() → connect() → choose_assets()`.
+- 95 tests verdes. Añadir 3er bróker = adaptador + credenciales en `.env` + entrada en factory.
+
+**Experimentos Fibonacci OTC (Temp/opencode/, fuera del repo):**
+- `fetch_iq_1m.py` → bajó **1000 velas 1m EURUSD-OTC** reales de IQ (`otc_eurusd_1m_history.csv`) vía `IqOptionWSClient.get_candles("EURUSD-OTC","1m",1000)` (funciona, trae histórico de golpe, no 1/min).
+- `fib_1m_otc.py`, `fib_1m_otc2.py` (sin confirmación, ~50%), `fib_1m_confirm.py` (**con** pin bar/engulfing → 55.9%/61.3% pero n=31-34, no significativo).
+- `fib_abs_test.py` — anclas max/min absolutos, sin edge.
+- Captura continua sigue corriendo: `capture_iq.py` (60s EURUSD-OTC, active 76) → `otc_live_76_60.csv`.
 
 ## Última entrega (Fase 3, hoy)
 
@@ -115,3 +145,7 @@ Cambios en **`bot/broker/exnova_ws.py`**:
 ## Pendientes (candidatos a siguiente sesión)
 
 - **Fase 4** básica: bucle principal Features → ML → gates → orden, iterable sobre `MockBrokerAdapter` sin riesgo (ya se puede operar con el adaptador real sobre `ExnovaWSClient` en demo).
+- **Acumular datos 1m OTC**: dejar corriendo la captura en background varios días para llegar a ~10k velas 1m (~7 días OTC). Con eso re-ejecutar `fib_1m_confirm.py` — el filtro de confirmación dispara solo en 2-5% de velas, se necesitan 300-500 trades confirmados para significancia estadística real.
+- **Modo registro manual** (propuesto, no construido): CLI donde el usuario apunta sus trades a ojo (entrada, dirección, resultado) guardándolos en `trade_logs` — medir su winrate real contra la versión mecánica.
+- **Decisión**: si el Fibonacci 1m OTC + confirmación no se confirma con datos suficientes, documentar en `plan.md` y cerrar como no-edge (como el resto del barrido).
+- **Lección de proyectos validados** (`binary-options-ml`, `ATLAS`): filtro de confianza (|prob−0.5| ≥ umbral, abstener = edge), expiry 15m > 1 vela, walk-forward + re-entrenar con datos IQ OTC. ⚠️ `ATLAS` midió OTC de IQ en **47.1%** (bajo moneda al aire) con modelo sin confirmación humana.

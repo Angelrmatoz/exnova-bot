@@ -491,11 +491,12 @@ class ExnovaWSClient:
         while time.time() - start < timeout:
             x = self._closed.get(order_id)
             if x is not None:
-                win = x["msg"]["win"]
+                payload = x.get("msg") if isinstance(x.get("msg"), dict) else x
+                win = payload["win"]
                 pnl = (
                     0.0 if win == "equal" else
-                    float(x["msg"]["sum"]) * -1 if win == "loose" else
-                    float(x["msg"]["win_amount"]) - float(x["msg"]["sum"])
+                    float(payload["sum"]) * -1 if win == "loose" else
+                    float(payload["win_amount"]) - float(payload["sum"])
                 )
                 return win, pnl
             time.sleep(0.1)
