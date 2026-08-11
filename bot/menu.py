@@ -83,6 +83,23 @@ def choose_stake(lo: float = 1.0, hi: float = 20000.0) -> float:
         print("Monto inválido, usa números con punto decimal (ej. 18370.45).")
 
 
+def choose_after_session() -> str:
+    """Opción tras terminar una sesión: esperar 1h, re-analizar ya o salir."""
+    print("\n=== Sesión terminada ===")
+    print("[1] Esperar 1 hora y volver a operar")
+    print("[2] Re-analizar el mercado ahora (lo antes posible)")
+    print("[3] Salir")
+    while True:
+        opt = input("Selecciona [1/2/3]: ").strip()
+        if opt == "1":
+            return "wait1h"
+        if opt == "2":
+            return "reanalyze"
+        if opt == "3":
+            return "exit"
+        print("Opción inválida, intenta de nuevo.")
+
+
 def choose_assets(broker: BrokerClient) -> list[str]:
     print("Escaneando divisas abiertas...")
     available = broker.get_available_assets()

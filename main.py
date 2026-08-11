@@ -1,7 +1,14 @@
+import subprocess
+import sys
+import time
+import webbrowser
+from pathlib import Path
+
 from bot.broker.factory import build_broker
 from bot.db import log_trade
 from bot.menu import (
     choose_account_type,
+    choose_after_session,
     choose_assets,
     choose_broker,
     choose_market,
@@ -11,7 +18,26 @@ from bot.menu import (
 from bot.session import run_session
 
 
+def start_dashboard(port: int = 8501) -> None:
+    """Lanza el dashboard Streamlit en segundo plano y muestra la URL."""
+    dash = Path(__file__).resolve().parent / "bot" / "scripts" / "dashboard.py"
+    try:
+        subprocess.Popen(
+            [sys.executable, "-m", "streamlit", "run", str(dash),
+             "--server.headless", "true", "--server.port", str(port)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except FileNotFoundError:
+        print("No se pudo lanzar Streamlit (¿uv sync?). Dashboard manual: uv run streamlit run bot/scripts/dashboard.py")
+        return
+    url = f"http://localhost:{port}"
+    print(f"Dashboard: {url}")
+    webbrowser.open(url)
+
+
 def main():
+    start_dashboard()
     name = choose_broker()
     if not name:
         return
@@ -30,6 +56,7 @@ def main():
 
     assets = choose_assets(broker)
     if not assets:
+        broker.disconnect()
         return
 
     def on_trade(**kw):
@@ -44,7 +71,15 @@ def main():
         )
 
     try:
-        run_session(broker, assets, timeframe, stake, market_type=market, on_trade=on_trade)
+        while True:
+            run_session(broker, assets, timeframe, stake, market_type=market, on_trade=on_trade)
+            action = choose_after_session()
+            if action == "exit":
+                break
+            if action == "wait1h":
+                print("Esperando 1 hora antes de la siguiente operación...")
+                time.sleep(3600)
+            print("Re-analizando el mercado...")
     except KeyboardInterrupt:
         print("\nSesión interrumpida.")
     finally:

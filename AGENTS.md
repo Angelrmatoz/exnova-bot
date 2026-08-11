@@ -17,7 +17,7 @@ Bot autónomo de opciones binarias en Exnova, en Python. Proyecto de operación 
 - SO Windows; shell PowerShell 7 (`pwsh`). Evita heredocs bash — escribe un script temporal si necesitas bloques multi-línea.
 - `plan.md` usa LF. Respeta el estilo de archivo existente.
 - Clave del layout de imports: corre siempre desde la raíz del repo (`uv run python -m ...`), nunca desde `bot/`.
-- Tests: `uv run pytest tests` (95 tests verdes; `pythonpath=["."]` ya configurado en pyproject.toml).
+- Tests: `uv run pytest tests` (105 tests verdes; `pythonpath=["."]` ya configurado en pyproject.toml).
 
 ## Comandos
 
@@ -38,6 +38,9 @@ uv run python -m bot.ml.multi_tf --in data/5m/EURUSD.csv --out data/5m/EURUSD.mt
 # Backtest sin conexión (Fase 3)
 uv run python -m bot.scripts.backtest_mock --pairs data/5m/EURUSD.csv,data/5m/GBPUSD.csv   # mock broker + trade_logs
 uv run python -m bot.scripts.backtest_mock --pairs data/5m/EURUSD.csv --payouts payouts.csv  # curva de payouts por par
+
+# Dashboard (Fase 6)
+uv run streamlit run bot/scripts/dashboard.py   # panel sobre bot_data.db: PnL acumulado, win rate por par, calibración, drawdown
 ```
 
 Verificar imports tras mover archivos: `uv run python -c "from <modulo> import ..."`.
@@ -47,6 +50,7 @@ Verificar imports tras mover archivos: `uv run python -c "from <modulo> import .
 - La conexión con el bróker es vía cliente WebSocket propio: `ExnovaWSClient` (`bot/broker/exnova_ws.py`) e `IqOptionWSClient` (`bot/broker/iqoption_ws.py`, auth por **ssid** de navegador — el login HTTP de IQ responde 403). El vendor `exnovaapi` fue **eliminado** — no reintroducirlo. El núcleo solo conoce `BrokerClient` (`bot/broker/base.py`). Cambiar de bróker = nuevo adaptador, nada más.
 - `IqOptionAdapter.place_order` es el único que debe llamar `IqOptionWSClient.buy()`: `buy` devuelve tupla `(ok, order_id)`. No usar `buy()` directo como order_id (el id va dentro de la tupla).
 - La lógica pura (features, history, ML) no importa el bróker; recibe datos vía parámetros/callables.
+- `main.py` corre `run_session` en bucle: tras cada sesión (`choose_after_session`) elige esperar 1h (`time.sleep(3600)`), re-analizar ya (espera vela nueva dentro de `run_session`) o salir.
 
 ## Estructura
 
@@ -61,7 +65,10 @@ bot/
 ├── db.py         # SQLite: model_versions (register_model); trade_logs (log_trade/log_trades) + get_today_pnl/get_loss_streak
 ├── config.py     # lee .env, valida credenciales (Exnova + IQ Option)
 ├── history.py    # fetch_candle_history (paginación 1000/batch)
-└── menu.py       # choose_market / choose_assets
+├── menu.py       # choose_broker / choose_market / choose_account_type / choose_timeframe /
+│                 # choose_stake / choose_assets / choose_after_session
+└── session.py    # run_session: regla de 3 operaciones; con wait=True espera vela NUEVA
+                  # antes de cada operación (análisis fresco, sin depender del reloj local)
 data/5m/          # EURUSD.csv, EURUSD.features.csv, EURUSD.features.oos.csv, EURUSD.mtl.csv
 models/           # eurusd_5m.pkl (modelo exportado)
 tests/            # pytest: wsutil.py (helpers WS), iq_mock.py (mock server IQ), conftest.py

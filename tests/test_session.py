@@ -9,7 +9,14 @@ import pytest
 
 from bot.broker.mock import MockBrokerAdapter
 from bot.menu import choose_stake
-from bot.session import normalize_result, run_session, should_stop, signal_for
+from bot.session import (
+    MIN_BODY_PCT,
+    confirmed_signal,
+    normalize_result,
+    run_session,
+    should_stop,
+    signal_for,
+)
 
 
 def _frame(closes, opens):
@@ -45,6 +52,33 @@ def test_normalize_result_unifica_brokers():
 def test_signal_for_direccion():
     assert signal_for(1.1, 1.0)[0] == "call"
     assert signal_for(0.9, 1.0)[0] == "put"
+
+
+def _candle(open_, close):
+    return {"time": 0.0, "open": open_, "close": close}
+
+
+def test_confirmed_signal_requiere_previo():
+    assert confirmed_signal(_candle(1.0, 1.1), None) is None
+
+
+def test_confirmed_signal_doji_se_descarta():
+    candle = _candle(1.0, 1.0 + MIN_BODY_PCT / 2)
+    assert confirmed_signal(candle, _candle(1.0, 1.0)) is None
+
+
+def test_confirmed_signal_direccion_opuesta_se_descarta():
+    assert confirmed_signal(_candle(1.0, 1.1), _candle(1.0, 0.9)) is None
+
+
+def test_confirmed_signal_confirma_direccion():
+    side, _ = confirmed_signal(_candle(1.0, 1.1), _candle(1.0, 1.05))
+    assert side == "call"
+
+
+def test_confirmed_signal_respeta_umbral():
+    big = 10.0 * MIN_BODY_PCT
+    assert confirmed_signal(_candle(1.0, 1.0 + big), _candle(1.0, 1.0 + big)) is not None
 
 
 def test_choose_stake_valida_rango(monkeypatch):

@@ -130,6 +130,18 @@ def log_trades(rows: list[dict]) -> int:
     return cur.rowcount
 
 
+def get_trades() -> list[dict]:
+    """Devuelve todas las operaciones de trade_logs como lista de dicts."""
+    conn = _connect()
+    rows = conn.execute(
+        "SELECT id, timestamp, pair, market_type, signal, confidence, gate_passed,"
+        " result, pnl FROM trade_logs ORDER BY timestamp"
+    ).fetchall()
+    conn.close()
+    cols = ["id", "timestamp", "pair", "market_type", "signal", "confidence", "gate_passed", "result", "pnl"]
+    return [dict(zip(cols, r)) for r in rows]
+
+
 def get_today_pnl(market_type: str | None = None) -> float:
     """Suma del pnl del día (UTC). Solo WIN/LOSS contribuyen; SKIPPED aporta 0."""
     today = datetime.now(timezone.utc).date().isoformat()

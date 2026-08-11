@@ -13,7 +13,6 @@ Bot autónomo en **Python** para opciones binarias en **Exnova**, con modelo de 
 - **Fase 1 — Entorno y Menú:** ✅ completa (`BrokerClient` abstracto, `ExnovaAdapter`, menú interactivo Normal/OTC, conexión DEMO validada).
 - **Fase 2 — Machine Learning:** ✅ completa (walk-forward, calibración, SHAP, export `.pkl`, features MTLF multi-timeframe).
 - **Fases 3-6:** Base de datos/backtesting, integración DEMO, despliegue, dashboard.
-
 > ⚠️ **Hallazgo Fase 2 (importante):** el backtest con features técnicos 5m da ~50% accuracy y **expectancy negativa** (−0.08 a −0.17 con payout 80%). **No hay edge confirmado con técnicos.** Ver `bot/ml/backtest.py` / `calibrate.py`. La literatura (random walk) respalda esto para forex real L-V. Posible vía con respaldo académico (Springer 2025): sentimiento con LLM + XGBoost.
 
 Detalle completo: [plan.md](plan.md) (roadmap, arquitectura de 2 capas, reglas de riesgo, esquema de BD).
@@ -71,6 +70,8 @@ cp .env.example .env   # rellena con tus credenciales DEMO
 uv run python main.py
 ```
 
+Flujo: operador → mercado → cuenta → timeframe → monto → divisa → sesión (máx. 3 operaciones, para con 2 WIN/2 LOSS). Tras cada sesión el menú pregunta: **esperar 1 hora**, **re-analizar el mercado ya** o **salir**. Cada operación espera una vela nueva cerrada (análisis fresco, sin depender del reloj local).
+
 ### Descargar historial de velas (10,000+)
 
 ```bash
@@ -87,16 +88,17 @@ uv run python -m bot.scripts.build_features --in data/5m/EURUSD.csv --out data/5
 
 ```text
 bot/
-├── broker/       # Interfaz abstracta BrokerClient + adaptadores (Exnova, Mock) + ExnovaWSClient
+├── broker/       # Interfaz abstracta BrokerClient + adaptadores (Exnova, Mock, IQ Option) + WS clients propios
 ├── ml/           # ML: features, multi_tf, train, calibrate, backtest, shap, export
 ├── scripts/      # CLIs (fetch_history, build_features, backtest_mock)
 ├── db.py         # SQLite (model_versions; trade_logs)
 ├── config.py     # Credenciales desde .env
 ├── history.py    # Descarga de velas con paginación
-└── menu.py       # Menú interactivo de inicio
+├── menu.py       # Menú interactivo (operador, mercado, divisas, post-sesión)
+└── session.py    # run_session: regla de 3 operaciones + espera de vela nueva
 data/             # Velas CSV descargadas y features generados
 models/           # Modelos XGBoost exportados (.pkl)
-main.py           # Entry point
+main.py           # Entry point (bucle de sesiones con espera 1h / re-análisis)
 plan.md           # Roadmap y decisiones de arquitectura
 ```
 
