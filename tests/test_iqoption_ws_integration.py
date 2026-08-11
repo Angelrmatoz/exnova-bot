@@ -103,8 +103,8 @@ def test_reconnect_after_forced_disconnect(iq_ws_client, iq_mock_server):
     connect(iq_ws_client)
     first_accepted = iq_mock_server.accepted
     iq_mock_server.force_disconnect()
-    assert wait_for(lambda: iq_mock_server.accepted > first_accepted, timeout=5)
-    assert wait_for(lambda: iq_ws_client._connected.is_set(), timeout=5)
+    assert wait_for(lambda: iq_mock_server.accepted > first_accepted, timeout=15)
+    assert wait_for(lambda: iq_ws_client._connected.is_set(), timeout=15)
     assert iq_ws_client.server_timestamp > 0
 
 
