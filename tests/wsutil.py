@@ -76,6 +76,10 @@ class ClientConn:
     def close(self):
         self.closed.set()
         try:
+            self.sock.sendall(_frame(0x8, struct.pack(">H", 1000)))
+        except OSError:
+            pass
+        try:
             self.sock.close()
         except OSError:
             pass
