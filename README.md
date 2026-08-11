@@ -108,3 +108,9 @@ plan.md           # Roadmap y decisiones de arquitectura
 - Credenciales **solo** vía variables de entorno / `.env` (excluido de git). Nunca hardcodeadas.
 - `ta` sustituye a `pandas-ta` (abandonado, no soporta Python 3.14).
 - Instrucciones para agentes de IA: ver [AGENTS.md](AGENTS.md).
+
+## Licencia
+
+Este proyecto está bajo la licencia **GNU General Public License v3.0 (GPL-3.0)**. 
+Cualquiera es libre de usar, modificar y redistribuir el código, pero **cualquier proyecto o derivado creado a partir de este debe ser obligatoriamente de código abierto y público** bajo la misma licencia. Consulta el archivo [`LICENSE`](LICENSE) para más detalles.
+
