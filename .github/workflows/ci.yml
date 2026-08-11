@@ -13,11 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node 24
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-
       - name: Setup Python 3.14 + uv
         uses: astral-sh/setup-uv@v6
         with:
