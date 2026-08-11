@@ -1,0 +1,10 @@
+services:
+  bot:
+    build: .
+    image: exnova-bot:latest
+    env_file: .env
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    volumes:
+      - ./bot_data.db:/app/bot_data.db

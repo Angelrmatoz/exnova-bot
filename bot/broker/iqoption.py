@@ -1,24 +1,21 @@
-"""ExnovaAdapter: BrokerClient concreto sobre ExnovaWSClient.
+"""IqOptionAdapter: BrokerClient concreto sobre IqOptionWSClient.
 
-El núcleo del bot solo conoce BrokerClient; jamás importa exnovaapi directamente.
-Cambiar de bróker = nuevo adapter.
+IQ Option comparte la familia de protocolo Quadcode con Exnova; este adaptador
+se conecta con un ssid (cookie de sesión del navegador). El núcleo del bot solo
+conoce BrokerClient; cambiar de bróker = nuevo adapter.
 """
 
 from bot.broker.base import BrokerClient
-from bot.broker.exnova_ws import ExnovaWSClient
+from bot.broker.iqoption_ws import IqOptionWSClient
 
 
-class ExnovaAdapter(BrokerClient):
-    def __init__(self, email: str, password: str, account_type: str = "PRACTICE", market_type: str = "NORMAL"):
-        self._client = ExnovaWSClient(email, password, account_type=account_type)
+class IqOptionAdapter(BrokerClient):
+    def __init__(self, ssid: str, account_type: str = "PRACTICE"):
+        self._client = IqOptionWSClient(ssid, account_type=account_type)
         self.account_type = account_type.upper()
-        self.market_type = market_type.upper()
 
     def connect(self) -> tuple[bool, str | None]:
         return self._client.connect()
-
-    def connect_2fa(self, sms_code: str) -> tuple[bool, str | None]:
-        return self._client.connect_2fa(sms_code)
 
     def check_connect(self) -> bool:
         return self._client.check_connect()
@@ -32,10 +29,7 @@ class ExnovaAdapter(BrokerClient):
         return self._client.get_candles(pair, timeframe, count, endtime)
 
     def get_available_assets(self) -> list[str]:
-        assets = self._client.get_available_assets()
-        if self.market_type == "OTC":
-            return sorted(a for a in assets if a.endswith("-OTC"))
-        return sorted(a for a in assets if not a.endswith("-OTC"))
+        return self._client.get_available_assets()
 
     def place_order(self, pair: str, side: str, amount: float, duration: str) -> str | None:
         ok, order_id = self._client.buy(pair, side, amount, duration)

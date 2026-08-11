@@ -9,9 +9,17 @@ gen
 
 # Python compiled files
 .venv
+__pycache__/
+*.pyc
 
 # Secrets
 .env
 
 # Codegraph
 .codegraph
+
+# Datos descargados y derivados (regenerables con fetch_history/build_features/multi_tf/pool)
+data/
+
+# Base de datos SQLite generada en runtime
+bot_data.db

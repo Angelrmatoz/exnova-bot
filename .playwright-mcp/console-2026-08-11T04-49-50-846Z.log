@@ -1,0 +1,14 @@
+[    4718ms] [WARNING] WARN Infinite extent for field "timestamp": [Infinity, -Infinity] @ http://localhost:8502/static/js/styled-components.DBFqJZf2.js:0
+[    4718ms] [WARNING] WARN Infinite extent for field "timestamp": [Infinity, -Infinity] @ http://localhost:8502/static/js/styled-components.DBFqJZf2.js:0
+[    4718ms] [WARNING] WARN Infinite extent for field "timestamp": [Infinity, -Infinity] @ http://localhost:8502/static/js/styled-components.DBFqJZf2.js:0
+[    4718ms] [WARNING] WARN Infinite extent for field "equity": [Infinity, -Infinity] @ http://localhost:8502/static/js/styled-components.DBFqJZf2.js:0
+[    4718ms] [WARNING] WARN Infinite extent for field "equity": [Infinity, -Infinity] @ http://localhost:8502/static/js/styled-components.DBFqJZf2.js:0
+[    4718ms] [WARNING] WARN Infinite extent for field "equity": [Infinity, -Infinity] @ http://localhost:8502/static/js/styled-components.DBFqJZf2.js:0
+[    4730ms] [WARNING] WARN Scale bindings are currently only supported for scales with unbinned, continuous domains. @ http://localhost:8502/static/js/styled-components.DBFqJZf2.js:0
+[    4744ms] [WARNING] WARN Infinite extent for field "winrate_start": [Infinity, -Infinity] @ http://localhost:8502/static/js/styled-components.DBFqJZf2.js:0
+[    4744ms] [WARNING] WARN Infinite extent for field "winrate_end": [Infinity, -Infinity] @ http://localhost:8502/static/js/styled-components.DBFqJZf2.js:0
+[    4771ms] [WARNING] WARN Infinite extent for field "timestamp": [Infinity, -Infinity] @ http://localhost:8502/static/js/styled-components.DBFqJZf2.js:0
+[    4772ms] [WARNING] WARN Infinite extent for field "equity": [Infinity, -Infinity] @ http://localhost:8502/static/js/styled-components.DBFqJZf2.js:0
+[    5264ms] [WARNING] WARN Infinite extent for field "mid": [Infinity, -Infinity] @ http://localhost:8502/static/js/styled-components.DBFqJZf2.js:0
+[    5264ms] [WARNING] WARN Infinite extent for field "winrate": [Infinity, -Infinity] @ http://localhost:8502/static/js/styled-components.DBFqJZf2.js:0
+[    5264ms] [WARNING] WARN Infinite extent for field "n": [Infinity, -Infinity] @ http://localhost:8502/static/js/styled-components.DBFqJZf2.js:0

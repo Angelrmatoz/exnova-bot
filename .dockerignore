@@ -1,0 +1,9 @@
+.git
+.venv
+__pycache__
+.pytest_cache
+.env
+bot_data.db
+data/
+models/
+Temp/
