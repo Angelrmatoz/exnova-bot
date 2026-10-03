@@ -13,6 +13,7 @@ from bot.session import (
     MIN_BODY_PCT,
     confirmed_signal,
     normalize_result,
+    reversion_signal,
     run_session,
     should_stop,
     signal_for,
@@ -129,3 +130,47 @@ def test_run_session_no_supera_3_trades():
     broker = MockBrokerAdapter(data)
     res = run_session(broker, ["EURUSD", "GBPUSD"], "1m", 10.0, wait=False)
     assert res["trades"] <= 3
+
+
+def _hist(closes, opens):
+    return _frame(closes, opens)[["time", "open", "close", "high", "low"]].to_dict("records")
+
+
+def test_reversion_signal_sin_historial():
+    assert reversion_signal(_hist([1.0, 1.1], [0.9, 1.0])) is None
+
+
+def test_reversion_signal_dispara_call_en_caida():
+    closes = [1.10] * 30 + [1.095, 1.09, 1.085, 1.08, 1.075]
+    opens = [1.10] * 30 + [1.10, 1.095, 1.09, 1.085, 1.08]
+    side, _ = reversion_signal(_hist(closes, opens))
+    assert side == "call"
+
+
+def test_reversion_signal_dispara_put_en_subida():
+    closes = [1.10] * 30 + [1.105, 1.11, 1.115, 1.12, 1.125]
+    opens = [1.10] * 30 + [1.10, 1.105, 1.11, 1.115, 1.12]
+    side, _ = reversion_signal(_hist(closes, opens))
+    assert side == "put"
+
+
+def test_reversion_signal_none_sin_setup():
+    closes = [1.10 + 0.001 * (i % 2) for i in range(35)]
+    opens = [1.10 + 0.001 * ((i + 1) % 2) for i in range(35)]
+    assert reversion_signal(_hist(closes, opens)) is None
+
+
+def test_run_session_omite_otc():
+    df = _frame([1.0, 1.1, 1.2, 1.3], [0.9, 1.0, 1.1, 1.2])
+    broker = MockBrokerAdapter({"EURUSD": df})
+    res = run_session(broker, ["EURUSD"], "1m", 10.0, market_type="OTC", wait=False)
+    assert res["trades"] == 0
+    assert broker._orders == {}
+
+
+def test_run_session_omite_par_no_validado():
+    df = _frame([1.0, 1.1, 1.2, 1.3], [0.9, 1.0, 1.1, 1.2])
+    broker = MockBrokerAdapter({"USDJPY": df})
+    res = run_session(broker, ["USDJPY"], "1m", 10.0, wait=False)
+    assert res["trades"] == 0
+    assert broker._orders == {}

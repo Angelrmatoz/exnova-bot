@@ -42,7 +42,9 @@ class ExnovaAdapter(BrokerClient):
         return order_id if ok else None
 
     def check_result(self, order_id: str) -> tuple[str, float]:
-        return self._client.check_result(order_id)
+        # 420s cubre expiraciones de hasta 5m + retardo de entrada (el loop
+        # retorna en cuanto llega el resultado; solo alarga el peor caso).
+        return self._client.check_result(order_id, timeout=420.0)
 
     def get_balance(self) -> float:
         return self._client.get_balance()
