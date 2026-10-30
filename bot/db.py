@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DB_PATH = ROOT / "bot_data.db"
+DB_PATH = Path(os.environ.get("BOT_DB_PATH") or ROOT / "bot_data.db")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS model_versions (
@@ -39,6 +40,7 @@ CREATE TABLE IF NOT EXISTS trade_logs (
 
 
 def _connect() -> sqlite3.Connection:
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     conn.execute("PRAGMA foreign_keys = ON")
     conn.executescript(SCHEMA)

@@ -4,6 +4,13 @@ __pycache__
 .pytest_cache
 .env
 bot_data.db
+db/
 data/
 models/
 Temp/
+.codegraph
+.idea
+.github
+.agents
+.playwright-mcp
+tests
