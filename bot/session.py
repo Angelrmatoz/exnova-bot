@@ -44,11 +44,19 @@ _STEP_SECONDS = {"1m": 60, "5m": 300}
 
 MIN_BODY_PCT = 0.0002
 
+MIN_SAMPLE = 60
+MIN_WIN_RATE = 0.538
+
 OnTrade = Callable[..., None]
 
 
 def should_stop(wins: int, losses: int, trades: int, max_trades: int = MAX_TRADES) -> bool:
     return trades >= max_trades or wins >= TAKE_PROFIT or losses >= STOP_LOSS
+
+
+def edge_alive(win_rate: float | None, resolved: int) -> bool:
+    """False si hay muestra suficiente y el win rate realizado no cubre el breakeven."""
+    return resolved < MIN_SAMPLE or (win_rate is not None and win_rate >= MIN_WIN_RATE)
 
 
 def signal_for(close: float, open_: float) -> tuple[str, float]:

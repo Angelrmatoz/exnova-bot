@@ -182,3 +182,22 @@ def get_loss_streak(market_type: str | None = None) -> int:
         elif result == "WIN":
             break
     return streak
+
+
+def get_win_rate(market_type: str | None = None) -> tuple[float | None, int]:
+    """Win rate realizado y nº de operaciones resueltas (WIN/LOSS). None si no hay muestra."""
+    conn = _connect()
+    if market_type:
+        row = conn.execute(
+            "SELECT SUM(result = 'WIN'), COUNT(*) FROM trade_logs"
+            " WHERE market_type = ? AND result IN ('WIN','LOSS')",
+            (market_type,),
+        ).fetchone()
+    else:
+        row = conn.execute(
+            "SELECT SUM(result = 'WIN'), COUNT(*) FROM trade_logs"
+            " WHERE result IN ('WIN','LOSS')"
+        ).fetchone()
+    conn.close()
+    wins, total = row[0] or 0, row[1] or 0
+    return (wins / total if total else None), total

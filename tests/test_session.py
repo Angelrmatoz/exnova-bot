@@ -11,8 +11,11 @@ from bot.broker.mock import MockBrokerAdapter
 from bot.menu import choose_stake
 from bot.session import (
     MIN_BODY_PCT,
+    MIN_SAMPLE,
+    MIN_WIN_RATE,
     _scan,
     confirmed_signal,
+    edge_alive,
     normalize_result,
     reversion_signal,
     run_session,
@@ -214,3 +217,18 @@ def test_scan_devuelve_none_sin_setup(monkeypatch):
 
     monkeypatch.setattr("bot.session.reversion_signal", lambda hist: None)
     assert _scan(_Fake(), ["EURUSD"], "5m", 39) is None
+
+
+def test_edge_alive_exige_muestra_minima():
+    assert edge_alive(None, 0)
+    assert edge_alive(0.50, MIN_SAMPLE - 1)
+
+
+def test_edge_alive_corta_bajo_breakeven():
+    assert not edge_alive(0.50, MIN_SAMPLE)
+    assert not edge_alive(0.537, 100)
+
+
+def test_edge_alive_acepta_el_umbral():
+    assert edge_alive(MIN_WIN_RATE, MIN_SAMPLE)
+    assert edge_alive(0.56, 200)
