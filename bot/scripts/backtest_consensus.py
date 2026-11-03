@@ -150,6 +150,7 @@ def main() -> None:
                         help="reversion = RSI 30/70; trend = RSI 50 (Trinity)")
     parser.add_argument("--rsi-hi", type=float, default=70.0, help="Umbral RSI superior (70 = estándar)")
     parser.add_argument("--rsi-lo", type=float, default=30.0, help="Umbral RSI inferior (30 = estándar)")
+    parser.add_argument("--hours", default=None, help="Rango de horas UTC activas, ej: '7-21' (sesión Londres/NY)")
     args = parser.parse_args()
 
     rows = []
@@ -159,6 +160,10 @@ def main() -> None:
         if len(frame) < 600:
             print(f"[{pair}] pocas velas ({len(frame)}), saltando.")
             continue
+        if args.hours:
+            lo, hi = (int(x) for x in args.hours.split("-"))
+            h = pd.to_datetime(frame["time"], unit="s").dt.hour
+            frame = frame[h.between(lo, hi)].reset_index(drop=True)
         r = run_pair(frame, args.payout, args.atr_min, args.atr_max, args.mode,
                      args.rsi_hi, args.rsi_lo)
         b = baseline_run(frame, args.payout)

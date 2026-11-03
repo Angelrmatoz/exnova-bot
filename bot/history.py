@@ -31,6 +31,7 @@ def fetch_candle_history(
     Devuelve lista de dicts {time, open, close, high, low} en orden antiguo->nuevo.
     """
     seen: list[dict] = []
+    seen_times: set[int] = set()
     cut: int | None = None
     guard = 0
     while len(seen) < target and guard < 200:
@@ -40,8 +41,10 @@ def fetch_candle_history(
             break
         for c in batch:
             # dedupe por timestamp (una vela repetida en el borde entre páginas)
-            if not any(existing["time"] == c["time"] for existing in seen):
+            if c["time"] not in seen_times:
                 seen.append(c)
+                seen_times.add(c["time"])
+        print(f"  lote {guard}: {len(seen):,} velas", flush=True)
         oldest = min(c["time"] for c in batch)
         if cut is not None and oldest >= cut:
             break  # la API no avanzó; no hay más historial disponible

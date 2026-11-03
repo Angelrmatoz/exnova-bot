@@ -4,6 +4,8 @@ La regla: parar con 2 WINs, 2 LOSSes o 3 operaciones (lo que primero).
 Se testea la lógica pura y el flujo completo sobre MockBrokerAdapter.
 """
 
+import calendar
+
 import pandas as pd
 import pytest
 
@@ -11,8 +13,15 @@ from bot.broker.mock import MockBrokerAdapter
 from bot.menu import choose_stake
 from bot.session import (
     MIN_BODY_PCT,
+    MIN_SAMPLE,
+    MIN_WIN_RATE,
+    TRADING_HOURS_UTC,
+    _scan,
     confirmed_signal,
+    edge_alive,
+    entry_in_window,
     normalize_result,
+    reversion_signal,
     run_session,
     should_stop,
     signal_for,
@@ -129,3 +138,113 @@ def test_run_session_no_supera_3_trades():
     broker = MockBrokerAdapter(data)
     res = run_session(broker, ["EURUSD", "GBPUSD"], "1m", 10.0, wait=False)
     assert res["trades"] <= 3
+
+
+def _hist(closes, opens):
+    return _frame(closes, opens)[["time", "open", "close", "high", "low"]].to_dict("records")
+
+
+def test_reversion_signal_sin_historial():
+    assert reversion_signal(_hist([1.0, 1.1], [0.9, 1.0])) is None
+
+
+def test_reversion_signal_dispara_call_en_caida():
+    closes = [1.10] * 30 + [1.095, 1.09, 1.085, 1.08, 1.075]
+    opens = [1.10] * 30 + [1.10, 1.095, 1.09, 1.085, 1.08]
+    side, _ = reversion_signal(_hist(closes, opens))
+    assert side == "call"
+
+
+def test_reversion_signal_dispara_put_en_subida():
+    closes = [1.10] * 30 + [1.105, 1.11, 1.115, 1.12, 1.125]
+    opens = [1.10] * 30 + [1.10, 1.105, 1.11, 1.115, 1.12]
+    side, _ = reversion_signal(_hist(closes, opens))
+    assert side == "put"
+
+
+def test_reversion_signal_none_sin_setup():
+    closes = [1.10 + 0.001 * (i % 2) for i in range(35)]
+    opens = [1.10 + 0.001 * ((i + 1) % 2) for i in range(35)]
+    assert reversion_signal(_hist(closes, opens)) is None
+
+
+def test_run_session_omite_otc():
+    df = _frame([1.0, 1.1, 1.2, 1.3], [0.9, 1.0, 1.1, 1.2])
+    broker = MockBrokerAdapter({"EURUSD": df})
+    res = run_session(broker, ["EURUSD"], "1m", 10.0, market_type="OTC", wait=False)
+    assert res["trades"] == 0
+    assert broker._orders == {}
+
+
+def test_run_session_omite_par_no_validado():
+    df = _frame([1.0, 1.1, 1.2, 1.3], [0.9, 1.0, 1.1, 1.2])
+    broker = MockBrokerAdapter({"USDCHF": df})
+    res = run_session(broker, ["USDCHF"], "1m", 10.0, wait=False)
+    assert res["trades"] == 0
+    assert broker._orders == {}
+
+
+def test_scan_elige_primer_par_con_setup(monkeypatch):
+    def _candles(start, n=36):
+        return [
+            {"time": start + i, "open": 1.0, "close": 1.001, "high": 1.002, "low": 0.999}
+            for i in range(n)
+        ]
+
+    data = {"EURUSD": _candles(0), "GBPUSD": _candles(5)}
+
+    class _Fake:
+        def __init__(self, candles):
+            self.candles = candles
+
+        def get_candles(self, pair, timeframe, n):
+            return self.candles[pair][-n:]
+
+    monkeypatch.setattr(
+        "bot.session.reversion_signal",
+        lambda hist: ("put", 0.9) if hist[-1]["time"] == 39 else None,
+    )
+    found = _scan(_Fake(data), ["EURUSD", "GBPUSD"], "5m", 39)
+    assert found == ("GBPUSD", "put", 0.9, "reversion")
+
+
+def test_scan_devuelve_none_sin_setup(monkeypatch):
+    def _candles(start, n=36):
+        return [
+            {"time": start + i, "open": 1.0, "close": 1.001, "high": 1.002, "low": 0.999}
+            for i in range(n)
+        ]
+
+    class _Fake:
+        def get_candles(self, pair, timeframe, n):
+            return _candles(5)[-n:]
+
+    monkeypatch.setattr("bot.session.reversion_signal", lambda hist: None)
+    assert _scan(_Fake(), ["EURUSD"], "5m", 39) is None
+
+
+def test_edge_alive_exige_muestra_minima():
+    assert edge_alive(None, 0)
+    assert edge_alive(0.50, MIN_SAMPLE - 1)
+
+
+def test_edge_alive_corta_bajo_breakeven():
+    assert not edge_alive(0.50, MIN_SAMPLE)
+    assert not edge_alive(0.537, 100)
+
+
+def test_edge_alive_acepta_el_umbral():
+    assert edge_alive(MIN_WIN_RATE, MIN_SAMPLE)
+    assert edge_alive(0.56, 200)
+
+
+def test_entry_in_window_solo_18_24_utc():
+    def ts(hour, minute=0):
+        return calendar.timegm((2026, 11, 3, hour, minute, 0))
+
+    assert TRADING_HOURS_UTC == frozenset(range(18, 24))
+    assert entry_in_window(ts(17, 55), 300)       # entrada a las 18:00
+    assert not entry_in_window(ts(23, 55), 300)   # entrada a las 00:00
+    assert not entry_in_window(ts(12), 300)
+    assert not entry_in_window(ts(17, 50), 300)   # entrada a las 17:55
+    assert entry_in_window(ts(17, 55), 300)

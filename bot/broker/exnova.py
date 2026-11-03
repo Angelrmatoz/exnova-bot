@@ -42,7 +42,9 @@ class ExnovaAdapter(BrokerClient):
         return order_id if ok else None
 
     def check_result(self, order_id: str) -> tuple[str, float]:
-        return self._client.check_result(order_id)
+        # 1500s cubre la binaria de 900s y su entrada tardía (grid de 15m:
+        # hasta ~23 min hasta el cierre). El loop retorna al llegar el resultado.
+        return self._client.check_result(order_id, timeout=1500.0)
 
     def get_balance(self) -> float:
         return self._client.get_balance()

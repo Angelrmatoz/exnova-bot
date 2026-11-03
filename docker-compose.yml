@@ -3,8 +3,21 @@ services:
     build: .
     image: exnova-bot:latest
     env_file: .env
+    environment:
+      BOT_DB_PATH: /app/db/bot_data.db
     stdin_open: true
     tty: true
-    restart: unless-stopped
+    init: true
+    stop_signal: SIGINT
+    restart: "no"
+    ports:
+      - "8501:8501"
     volumes:
-      - ./bot_data.db:/app/bot_data.db
+      - ./db:/app/db
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

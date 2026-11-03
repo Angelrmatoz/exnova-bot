@@ -58,6 +58,23 @@ def test_expiration_more_than_5min_binary():
     assert idx >= 5
 
 
+def test_expiration_15m_aligned_and_binary():
+    ts = 1793387100  # 19:05:00 UTC
+    exp, idx = get_expiration_time(ts, 15)
+    assert exp % 900 == 0
+    assert exp - ts > 300
+    assert idx >= 5
+
+
+def test_get_payout_reads_binary_from_initialization_data():
+    c = client_factory()
+    c._init_v2 = {"binary": {"actives": {
+        "1861": {"name": "front.EURUSD-op", "option": {"profit": {"commission": 14}}},
+    }}}
+    assert c.get_payout("EURUSD-op") == pytest.approx(0.86)
+    assert c.get_payout("GBPUSD-op") is None
+
+
 def test_timestamp():
     from datetime import datetime
     assert int(exnova_ws._date_to_timestamp(datetime.now())) > 0

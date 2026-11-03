@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DB_PATH = ROOT / "bot_data.db"
+DB_PATH = Path(os.environ.get("BOT_DB_PATH") or ROOT / "bot_data.db")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS model_versions (
@@ -39,6 +40,7 @@ CREATE TABLE IF NOT EXISTS trade_logs (
 
 
 def _connect() -> sqlite3.Connection:
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     conn.execute("PRAGMA foreign_keys = ON")
     conn.executescript(SCHEMA)
@@ -180,3 +182,22 @@ def get_loss_streak(market_type: str | None = None) -> int:
         elif result == "WIN":
             break
     return streak
+
+
+def get_win_rate(market_type: str | None = None) -> tuple[float | None, int]:
+    """Win rate realizado y nº de operaciones resueltas (WIN/LOSS). None si no hay muestra."""
+    conn = _connect()
+    if market_type:
+        row = conn.execute(
+            "SELECT SUM(result = 'WIN'), COUNT(*) FROM trade_logs"
+            " WHERE market_type = ? AND result IN ('WIN','LOSS')",
+            (market_type,),
+        ).fetchone()
+    else:
+        row = conn.execute(
+            "SELECT SUM(result = 'WIN'), COUNT(*) FROM trade_logs"
+            " WHERE result IN ('WIN','LOSS')"
+        ).fetchone()
+    conn.close()
+    wins, total = row[0] or 0, row[1] or 0
+    return (wins / total if total else None), total

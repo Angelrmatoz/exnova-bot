@@ -71,7 +71,7 @@ def get_expiration_time(timestamp, duration):
             index = index + 1
         exp_date = exp_date + timedelta(minutes=1)
 
-    remaning = [int(t) - int(time.time()) for t in exp]
+    remaning = [int(t) - int(timestamp) for t in exp]
     close = [abs(x - 60 * duration) for x in remaning]
     return int(exp[close.index(min(close))]), int(close.index(min(close)))
 
@@ -450,11 +450,15 @@ class ExnovaWSClient:
         return sorted(assets)
 
     def get_payout(self, pair: str) -> float | None:
-        init_info = self.get_all_init()
-        for option in ("turbo", "binary"):
-            for active in init_info.get("result", {}).get(option, {}).get("actives", {}).values():
-                if _asset_name(active["name"]) == pair:
-                    return (100.0 - active["option"]["profit"]["commission"]) / 100.0
+        """Payout del tipo de opción que se opera (binary), desde initialization-data."""
+        data = self._init_v2 if self._init_v2 is not None else (self.get_all_init_v2() or {})
+        for option in ("binary", "turbo"):
+            for active in data.get(option, {}).get("actives", {}).values():
+                if _asset_name(active["name"]) != pair:
+                    continue
+                commission = (active.get("option") or {}).get("profit", {}).get("commission")
+                if commission is not None:
+                    return (100.0 - commission) / 100.0
         return None
 
     # --------------------------------------------------------------- trading

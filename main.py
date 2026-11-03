@@ -5,7 +5,7 @@ import webbrowser
 from pathlib import Path
 
 from bot.broker.factory import build_broker
-from bot.db import log_trade
+from bot.db import get_win_rate, log_trade
 from bot.menu import (
     choose_account_type,
     choose_after_session,
@@ -15,7 +15,7 @@ from bot.menu import (
     choose_stake,
     choose_timeframe,
 )
-from bot.session import run_session
+from bot.session import MIN_SAMPLE, MIN_WIN_RATE, edge_alive, run_session
 
 
 def start_dashboard(port: int = 8501) -> None:
@@ -54,6 +54,15 @@ def main():
         return
     print(f"Conectado. Balance: {broker.get_balance():.2f}\n")
 
+    rate, resolved = get_win_rate(market)
+    if not edge_alive(rate, resolved):
+        print(
+            f"Edge no confirmado: win rate realizado {rate:.1%} en {resolved} operaciones"
+            f" (mínimo {MIN_WIN_RATE:.1%} con {MIN_SAMPLE}+). No se opera."
+        )
+        broker.disconnect()
+        return
+
     assets = choose_assets(broker)
     if not assets:
         broker.disconnect()
@@ -72,7 +81,8 @@ def main():
 
     try:
         while True:
-            run_session(broker, assets, timeframe, stake, market_type=market, on_trade=on_trade)
+            run_session(broker, assets, timeframe, stake, market_type=market, on_trade=on_trade,
+                        expiry="15m")
             action = choose_after_session()
             if action == "exit":
                 break
