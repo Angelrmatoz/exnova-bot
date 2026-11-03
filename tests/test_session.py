@@ -4,6 +4,8 @@ La regla: parar con 2 WINs, 2 LOSSes o 3 operaciones (lo que primero).
 Se testea la lógica pura y el flujo completo sobre MockBrokerAdapter.
 """
 
+import calendar
+
 import pandas as pd
 import pytest
 
@@ -13,9 +15,11 @@ from bot.session import (
     MIN_BODY_PCT,
     MIN_SAMPLE,
     MIN_WIN_RATE,
+    TRADING_HOURS_UTC,
     _scan,
     confirmed_signal,
     edge_alive,
+    entry_in_window,
     normalize_result,
     reversion_signal,
     run_session,
@@ -232,3 +236,15 @@ def test_edge_alive_corta_bajo_breakeven():
 def test_edge_alive_acepta_el_umbral():
     assert edge_alive(MIN_WIN_RATE, MIN_SAMPLE)
     assert edge_alive(0.56, 200)
+
+
+def test_entry_in_window_solo_18_24_utc():
+    def ts(hour, minute=0):
+        return calendar.timegm((2026, 11, 3, hour, minute, 0))
+
+    assert TRADING_HOURS_UTC == frozenset(range(18, 24))
+    assert entry_in_window(ts(17, 55), 300)       # entrada a las 18:00
+    assert not entry_in_window(ts(23, 55), 300)   # entrada a las 00:00
+    assert not entry_in_window(ts(12), 300)
+    assert not entry_in_window(ts(17, 50), 300)   # entrada a las 17:55
+    assert entry_in_window(ts(17, 55), 300)
