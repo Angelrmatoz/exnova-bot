@@ -4,11 +4,9 @@ Parada: 2 WINs (take-profit de sesión) o 2 LOSSes (stop-loss de sesión) o
 3 operaciones. Los resultados DRAW (equal/tie) cuentan como operación pero
 no rompen la regla.
 
-Con wait=True la sesión espera a que cierre una vela NUEVA y solo opera si
-la vela cerrada confirma dirección (cuerpo mínimo + 2 velas seguidas en el
-mismo sentido); si no, salta y espera la siguiente vela en vez de forzar
-trades sobre ruido. Con wait=False (tests/backtest) opera directamente
-sobre la última vela disponible.
+Con wait=True cada vela cerrada se escanea en TODOS los pares y se opera el
+primer setup encontrado; el resto de la vela la sesión duerme. Con wait=False
+(tests/backtest) opera directamente sobre la última vela disponible.
 """
 
 from __future__ import annotations
@@ -27,8 +25,20 @@ STOP_LOSS = 2
 
 HISTORY_N = 50
 MIN_HISTORY = 30
-VALIDATED_BASES = {"EURUSD", "GBPUSD"}
-MIN_PAYOUT = 0.80
+VALIDATED_BASES = {
+    "EURUSD",
+    "GBPUSD",
+    "USDJPY",
+    "AUDUSD",
+    "EURGBP",
+    "EURJPY",
+    "GBPJPY",
+    "USDCAD",
+    "NZDUSD",
+    "EURAUD",
+    "CADCHF",
+}
+MIN_PAYOUT = 0.86
 
 _STEP_SECONDS = {"1m": 60, "5m": 300}
 
@@ -125,46 +135,31 @@ def normalize_result(result: str) -> str:
     return r
 
 
-def _wait_for_new_candle(
+def _scan(
     broker: BrokerClient,
-    pair: str,
+    assets: list[str],
     timeframe: str,
-    prev_time: float,
-    timeout: float = 180.0,
-) -> dict[str, Any] | None:
-    """Espera a que el broker devuelva una vela con time distinto a prev_time.
+    clock: float,
+) -> tuple[str, str, float, str] | None:
+    """Primer par de `assets` con señal en la vela cerrada `clock`.
 
-    En vez de dormir hasta un borde de vela por reloj local (frágil con
-    drift), se sondea get_candles hasta ver una vela nueva.
+    Devuelve (pair, side, confidence, gate) o None si ningún par tiene setup.
     """
-    deadline = time.time() + timeout
-    while time.time() < deadline:
-        candles = broker.get_candles(pair, timeframe, 2)
-        if candles and candles[-1]["time"] != prev_time:
-            return candles[-1]
-        time.sleep(2)
-    return None
-
-
-def _wait_for_closed_candle(
-    broker: BrokerClient,
-    pair: str,
-    timeframe: str,
-    prev_time: float,
-    timeout: float = 180.0,
-) -> list[dict[str, Any]] | None:
-    """Espera a que cierre una vela NUEVA y devuelve el historial hasta ella.
-
-    La lista termina en la vela recién cerrada (se descarta la vela en
-    formación, candles[-1], que es ruido). Trae HISTORY_N velas para que
-    la señal de reversión tenga warm-up de indicadores.
-    """
-    deadline = time.time() + timeout
-    while time.time() < deadline:
+    for pair in assets:
         candles = broker.get_candles(pair, timeframe, HISTORY_N)
-        if len(candles) >= 2 and candles[-2]["time"] != prev_time:
-            return candles[:-1]
-        time.sleep(2)
+        if len(candles) < 2:
+            continue
+        hist = candles[:-1]
+        if hist[-1]["time"] != clock:
+            continue
+        if len(hist) >= MIN_HISTORY:
+            signal = reversion_signal(hist)
+            gate = "reversion"
+        else:
+            signal = signal_for(hist[-1]["close"], hist[-1]["open"])
+            gate = "momentum"
+        if signal is not None:
+            return pair, signal[0], signal[1], gate
     return None
 
 
@@ -180,10 +175,12 @@ def run_session(
 ) -> dict[str, float]:
     """Opera sobre los assets hasta que la regla de 3 pare la sesión.
 
-    Señal: unión Double Reversal + Exhaustion en velas 1m (validada en
-    EURUSD/GBPUSD reales, ~56-58% a expiración 5m). `expiry` fija la
-    expiración de la orden (None = timeframe). Pares sin edge validado
-    y mercado OTC (feed aleatorio) se omiten.
+    Señal: unión Double Reversal + Exhaustion en velas de 5m, validada en 11
+    pares NORMAL (55.13% ±0.81%, expectancy +2.54% con payout 0.86, estable
+    70/30). `expiry` fija la expiración de la orden (None = timeframe). Pares
+    sin edge validado y mercado OTC (feed sintético, 48-49%) se omiten.
+    Con wait=True cada vela cerrada se escanea en TODOS los pares y se opera el
+    primer setup; el resto de la vela se espera en reposo.
     `on_trade` recibe kwargs {pair, market_type, signal, result, pnl, confidence,
     gate_passed} y se llama por operación (None = no persistir).
     Devuelve resumen {trades, wins, losses, pnl}.
@@ -204,41 +201,42 @@ def run_session(
     if not tradable:
         print("Sin activos operables, terminando sesión.")
         return {"trades": 0, "wins": 0, "losses": 0, "pnl": 0.0}
-    if timeframe != "1m":
-        print("Señal validada solo en velas 1m: operando sin edge confirmado.")
+    if timeframe != "5m":
+        print("Señal validada solo en velas 5m: operando sin edge confirmado.")
     duration = expiry or timeframe
     assets = tradable
     wins = losses = trades = 0
     pnl_total = 0.0
     prev_candle_time: float | None = None
+    idle_limit = 4 * _STEP_SECONDS.get(timeframe, 300)
+    idle_deadline = time.time() + idle_limit
     while not should_stop(wins, losses, trades):
-        pair = assets[trades % len(assets)]
         gate = "reversion"
-        if wait and prev_candle_time is None:
-            base = broker.get_candles(pair, timeframe, 2)
-            if not base:
-                print(f"[{pair}] sin velas, terminando sesión.")
-                break
-            prev_candle_time = base[-1]["time"]
         if wait:
-            wait_timeout = 2 * _STEP_SECONDS.get(timeframe, 60)
-            hist = _wait_for_closed_candle(broker, pair, timeframe, prev_candle_time, wait_timeout)
-            if not hist:
-                print(f"[{pair}] timeout esperando vela nueva, terminando sesión.")
+            clock = None
+            for probe in assets:
+                candles = broker.get_candles(probe, timeframe, 2)
+                if len(candles) >= 2:
+                    clock = candles[-2]["time"]
+                    break
+            if clock is None:
+                print("Sin velas en ningún par, terminando sesión.")
                 break
-            closed = hist[-1]
-            if len(hist) >= MIN_HISTORY:
-                signal = reversion_signal(hist)
-            else:
-                gate = "momentum"
-                signal = signal_for(closed["close"], closed["open"])
-            if signal is None:
-                print(f"[{pair}] sin setup de reversión, esperando siguiente vela...")
-                prev_candle_time = closed["time"]
+            if clock == prev_candle_time:
+                if time.time() > idle_deadline:
+                    print("Sin velas nuevas, terminando sesión.")
+                    break
+                time.sleep(2)
                 continue
-            side, confidence = signal
-            prev_candle_time = closed["time"]
+            prev_candle_time = clock
+            idle_deadline = time.time() + idle_limit
+            found = _scan(broker, assets, timeframe, clock)
+            if found is None:
+                print(f"Vela {clock:.0f}: sin setup en {len(assets)} pares, esperando...")
+                continue
+            pair, side, confidence, gate = found
         else:
+            pair = assets[trades % len(assets)]
             candles = broker.get_candles(pair, timeframe, 2)
             if not candles:
                 print(f"[{pair}] sin velas, terminando sesión.")

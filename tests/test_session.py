@@ -11,6 +11,7 @@ from bot.broker.mock import MockBrokerAdapter
 from bot.menu import choose_stake
 from bot.session import (
     MIN_BODY_PCT,
+    _scan,
     confirmed_signal,
     normalize_result,
     reversion_signal,
@@ -170,7 +171,46 @@ def test_run_session_omite_otc():
 
 def test_run_session_omite_par_no_validado():
     df = _frame([1.0, 1.1, 1.2, 1.3], [0.9, 1.0, 1.1, 1.2])
-    broker = MockBrokerAdapter({"USDJPY": df})
-    res = run_session(broker, ["USDJPY"], "1m", 10.0, wait=False)
+    broker = MockBrokerAdapter({"USDCHF": df})
+    res = run_session(broker, ["USDCHF"], "1m", 10.0, wait=False)
     assert res["trades"] == 0
     assert broker._orders == {}
+
+
+def test_scan_elige_primer_par_con_setup(monkeypatch):
+    def _candles(start, n=36):
+        return [
+            {"time": start + i, "open": 1.0, "close": 1.001, "high": 1.002, "low": 0.999}
+            for i in range(n)
+        ]
+
+    data = {"EURUSD": _candles(0), "GBPUSD": _candles(5)}
+
+    class _Fake:
+        def __init__(self, candles):
+            self.candles = candles
+
+        def get_candles(self, pair, timeframe, n):
+            return self.candles[pair][-n:]
+
+    monkeypatch.setattr(
+        "bot.session.reversion_signal",
+        lambda hist: ("put", 0.9) if hist[-1]["time"] == 39 else None,
+    )
+    found = _scan(_Fake(data), ["EURUSD", "GBPUSD"], "5m", 39)
+    assert found == ("GBPUSD", "put", 0.9, "reversion")
+
+
+def test_scan_devuelve_none_sin_setup(monkeypatch):
+    def _candles(start, n=36):
+        return [
+            {"time": start + i, "open": 1.0, "close": 1.001, "high": 1.002, "low": 0.999}
+            for i in range(n)
+        ]
+
+    class _Fake:
+        def get_candles(self, pair, timeframe, n):
+            return _candles(5)[-n:]
+
+    monkeypatch.setattr("bot.session.reversion_signal", lambda hist: None)
+    assert _scan(_Fake(), ["EURUSD"], "5m", 39) is None

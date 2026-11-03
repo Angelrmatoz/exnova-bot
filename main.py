@@ -73,7 +73,7 @@ def main():
     try:
         while True:
             run_session(broker, assets, timeframe, stake, market_type=market, on_trade=on_trade,
-                        expiry="5m" if timeframe == "1m" else None)
+                        expiry="15m")
             action = choose_after_session()
             if action == "exit":
                 break

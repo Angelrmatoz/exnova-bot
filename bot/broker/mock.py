@@ -24,7 +24,7 @@ class MockBrokerAdapter(BrokerClient):
         self,
         data: dict[str, pd.DataFrame],
         initial_balance: float = 1000.0,
-        default_payout: float = 0.80,
+        default_payout: float = 0.86,
         payouts: dict[str, float] | None = None,
     ):
         self._data = {pair: df.copy().reset_index(drop=True) for pair, df in data.items()}
