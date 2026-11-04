@@ -1,0 +1,690 @@
+{
+ "AIG-OTC": {
+  "anchor": "08:10",
+  "ratio": 29.1
+ },
+ "AIRLINES-OTC": {
+  "anchor": "01:10",
+  "ratio": 46.0
+ },
+ "ALIBABA-OTC": {
+  "anchor": "08:10",
+  "ratio": 41.6
+ },
+ "AMAZON-OTC": {
+  "anchor": "18:40",
+  "ratio": 84.2
+ },
+ "AMZN/ALIBABA-OTC": {
+  "anchor": "09:35",
+  "ratio": 39.0
+ },
+ "AMZN/EBAY-OTC": {
+  "anchor": "09:35",
+  "ratio": 56.0
+ },
+ "APPLE-OTC": {
+  "anchor": "18:40",
+  "ratio": 57.1
+ },
+ "ARBUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 34.8
+ },
+ "ATOMUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 36.0
+ },
+ "AUDCAD-OTC": {
+  "anchor": "08:10",
+  "ratio": 44.2
+ },
+ "AUDCHF-OTC": {
+  "anchor": "01:10",
+  "ratio": 74.8
+ },
+ "AUDJPY-OTC": {
+  "anchor": "08:10",
+  "ratio": 40.6
+ },
+ "AUDNZD-OTC": {
+  "anchor": "01:10",
+  "ratio": 29.1
+ },
+ "AUDUSD-OTC": {
+  "anchor": "01:10",
+  "ratio": 19.1
+ },
+ "AUS200-OTC": {
+  "anchor": "01:10",
+  "ratio": 32.4
+ },
+ "Anthropic-OTC": {
+  "anchor": "18:40",
+  "ratio": 61.4
+ },
+ "BCHUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 34.7
+ },
+ "BIDU-OTC": {
+  "anchor": "08:10",
+  "ratio": 44.9
+ },
+ "BONKUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 47.6
+ },
+ "CADCHF-OTC": {
+  "anchor": "08:10",
+  "ratio": 56.6
+ },
+ "CADJPY-OTC": {
+  "anchor": "01:10",
+  "ratio": 46.7
+ },
+ "CANNABIS-OTC": {
+  "anchor": "01:10",
+  "ratio": 32.6
+ },
+ "CASINOS-OTC": {
+  "anchor": "01:10",
+  "ratio": 85.7
+ },
+ "CHFJPY-OTC": {
+  "anchor": "08:10",
+  "ratio": 39.0
+ },
+ "CHFNOK-OTC": {
+  "anchor": "08:10",
+  "ratio": 61.5
+ },
+ "CITI-OTC": {
+  "anchor": "08:10",
+  "ratio": 10.6
+ },
+ "COCOA-OTC": {
+  "anchor": "09:05",
+  "ratio": 61.9
+ },
+ "COFFEE-OTC": {
+  "anchor": "09:05",
+  "ratio": 52.6
+ },
+ "COKE-OTC": {
+  "anchor": "08:10",
+  "ratio": 30.0
+ },
+ "COTTON-OTC": {
+  "anchor": "09:05",
+  "ratio": 50.4
+ },
+ "DASHUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 22.8
+ },
+ "DOTUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 37.2
+ },
+ "DYDXUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 29.8
+ },
+ "EOSUSD-OTC": {
+  "anchor": "01:10",
+  "ratio": 27.5
+ },
+ "ETHUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 59.0
+ },
+ "EU50-OTC": {
+  "anchor": "08:10",
+  "ratio": 27.3
+ },
+ "EURAUD-OTC": {
+  "anchor": "08:10",
+  "ratio": 60.0
+ },
+ "EURCAD-OTC": {
+  "anchor": "08:10",
+  "ratio": 25.8
+ },
+ "EURCHF-OTC": {
+  "anchor": "08:10",
+  "ratio": 47.5
+ },
+ "EURGBP-OTC": {
+  "anchor": "04:05",
+  "ratio": 31.1
+ },
+ "EURJPY-OTC": {
+  "anchor": "04:05",
+  "ratio": 3.6
+ },
+ "EURNZD-OTC": {
+  "anchor": "01:10",
+  "ratio": 44.1
+ },
+ "EURTHB-OTC": {
+  "anchor": "01:10",
+  "ratio": 25.7
+ },
+ "EURUSD-OTC": {
+  "anchor": "08:10",
+  "ratio": 36.7
+ },
+ "FARTCOINUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 40.7
+ },
+ "FB-OTC": {
+  "anchor": "18:40",
+  "ratio": 32.2
+ },
+ "FETUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 33.7
+ },
+ "FLOKIUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 18.4
+ },
+ "FR40-OTC": {
+  "anchor": "08:10",
+  "ratio": 35.3
+ },
+ "FWONA-OTC": {
+  "anchor": "18:40",
+  "ratio": 19.0
+ },
+ "GBPAUD-OTC": {
+  "anchor": "08:10",
+  "ratio": 32.5
+ },
+ "GBPCAD-OTC": {
+  "anchor": "08:10",
+  "ratio": 24.0
+ },
+ "GBPCHF-OTC": {
+  "anchor": "08:10",
+  "ratio": 31.8
+ },
+ "GBPJPY-OTC": {
+  "anchor": "04:05",
+  "ratio": 10.1
+ },
+ "GBPNZD-OTC": {
+  "anchor": "01:10",
+  "ratio": 36.1
+ },
+ "GBPUSD-OTC": {
+  "anchor": "04:05",
+  "ratio": 6.3
+ },
+ "GER30-OTC": {
+  "anchor": "08:10",
+  "ratio": 22.2
+ },
+ "GER30/UK100-OTC": {
+  "anchor": "09:35",
+  "ratio": 32.7
+ },
+ "GEV-OTC": {
+  "anchor": "18:40",
+  "ratio": 67.9
+ },
+ "GOOGLE-OTC": {
+  "anchor": "18:40",
+  "ratio": 79.7
+ },
+ "GOOGLE/MSFT-OTC": {
+  "anchor": "09:35",
+  "ratio": 31.1
+ },
+ "GRTUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 66.8
+ },
+ "GS-OTC": {
+  "anchor": "08:10",
+  "ratio": 58.3
+ },
+ "HBARUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 52.1
+ },
+ "HK33-OTC": {
+  "anchor": "18:05",
+  "ratio": 26.3
+ },
+ "HYPE-OTC": {
+  "anchor": "15:10",
+  "ratio": 29.4
+ },
+ "ICPUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 59.0
+ },
+ "IMXUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 40.2
+ },
+ "INJUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 47.8
+ },
+ "INTEL-OTC": {
+  "anchor": "08:10",
+  "ratio": 33.7
+ },
+ "INTEL/IBM-OTC": {
+  "anchor": "09:35",
+  "ratio": 48.2
+ },
+ "IOTAUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 47.1
+ },
+ "JP225-OTC": {
+  "anchor": "01:10",
+  "ratio": 43.6
+ },
+ "JPM-OTC": {
+  "anchor": "08:10",
+  "ratio": 39.8
+ },
+ "JPYTHB-OTC": {
+  "anchor": "01:10",
+  "ratio": 33.0
+ },
+ "JUPUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 52.6
+ },
+ "KLARNA-OTC": {
+  "anchor": "18:40",
+  "ratio": 23.1
+ },
+ "LABUBUUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 29.6
+ },
+ "LINKUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 43.4
+ },
+ "LTCUSD-OTC": {
+  "anchor": "01:10",
+  "ratio": 24.7
+ },
+ "LUNA-OTC": {
+  "anchor": "08:10",
+  "ratio": 50.1
+ },
+ "MAGNIFICENT7-OTC": {
+  "anchor": "01:10",
+  "ratio": 39.5
+ },
+ "MANAUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 42.3
+ },
+ "MATICUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 41.9
+ },
+ "MCDON-OTC": {
+  "anchor": "08:10",
+  "ratio": 13.1
+ },
+ "MELANIAUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 38.8
+ },
+ "META/GOOGLE-OTC": {
+  "anchor": "09:35",
+  "ratio": 54.8
+ },
+ "MORSTAN-OTC": {
+  "anchor": "08:10",
+  "ratio": 45.6
+ },
+ "MSFT-OTC": {
+  "anchor": "08:10",
+  "ratio": 59.0
+ },
+ "MSFT/AAPL-OTC": {
+  "anchor": "09:35",
+  "ratio": 41.5
+ },
+ "MU-OTC": {
+  "anchor": "18:40",
+  "ratio": 58.3
+ },
+ "NEARUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 52.2
+ },
+ "NFLX/AMZN-OTC": {
+  "anchor": "09:35",
+  "ratio": 57.0
+ },
+ "NIKE-OTC": {
+  "anchor": "08:10",
+  "ratio": 37.4
+ },
+ "NOKJPY-OTC": {
+  "anchor": "01:10",
+  "ratio": 52.8
+ },
+ "NVDA-OTC": {
+  "anchor": "18:40",
+  "ratio": 32.8
+ },
+ "NVDA/AMD-OTC": {
+  "anchor": "09:35",
+  "ratio": 58.2
+ },
+ "NZDCAD-OTC": {
+  "anchor": "01:10",
+  "ratio": 25.7
+ },
+ "NZDCHF-OTC": {
+  "anchor": "01:10",
+  "ratio": 41.6
+ },
+ "NZDJPY-OTC": {
+  "anchor": "01:10",
+  "ratio": 54.4
+ },
+ "NZDUSD-OTC": {
+  "anchor": "04:05",
+  "ratio": 12.2
+ },
+ "ONDOUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 35.1
+ },
+ "ONYXCOINUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 31.1
+ },
+ "ORDIUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 34.9
+ },
+ "OpenAI-OTC": {
+  "anchor": "18:40",
+  "ratio": 62.8
+ },
+ "PENGUUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 51.0
+ },
+ "PENUSD-OTC": {
+  "anchor": "07:05",
+  "ratio": 49.7
+ },
+ "PEPEUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 33.2
+ },
+ "PLTR-OTC": {
+  "anchor": "18:40",
+  "ratio": 60.5
+ },
+ "PYTHUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 48.3
+ },
+ "RAYDIUMUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 26.9
+ },
+ "RENDERUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 53.0
+ },
+ "RONINUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 72.3
+ },
+ "SANDUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 39.9
+ },
+ "SATSUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 75.7
+ },
+ "SEIUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 77.4
+ },
+ "SHIBUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 23.5
+ },
+ "SNAP-OTC": {
+  "anchor": "08:10",
+  "ratio": 71.4
+ },
+ "SNDK-OTC": {
+  "anchor": "18:40",
+  "ratio": 51.2
+ },
+ "SOLUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 24.7
+ },
+ "SP500-OTC": {
+  "anchor": "18:05",
+  "ratio": 22.1
+ },
+ "STXUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 34.9
+ },
+ "SUGAR-OTC": {
+  "anchor": "09:05",
+  "ratio": 30.4
+ },
+ "SUIUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 40.9
+ },
+ "SpaceX-OTC": {
+  "anchor": "18:40",
+  "ratio": 50.6
+ },
+ "TAOUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 44.4
+ },
+ "TESLA-OTC": {
+  "anchor": "18:40",
+  "ratio": 49.6
+ },
+ "TESLA/FORD-OTC": {
+  "anchor": "09:35",
+  "ratio": 21.7
+ },
+ "TIAUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 37.3
+ },
+ "TRON-OTC": {
+  "anchor": "20:50",
+  "ratio": 41.1
+ },
+ "TRUMPUSD-OTC": {
+  "anchor": "15:10",
+  "ratio": 54.1
+ },
+ "UK100-OTC": {
+  "anchor": "08:10",
+  "ratio": 48.7
+ },
+ "UKOUSD-OTC": {
+  "anchor": "09:05",
+  "ratio": 28.3
+ },
+ "URANIUM-OTC": {
+  "anchor": "01:10",
+  "ratio": 34.5
+ },
+ "US100/JP225-OTC": {
+  "anchor": "09:35",
+  "ratio": 14.2
+ },
+ "US2000-OTC": {
+  "anchor": "08:10",
+  "ratio": 50.9
+ },
+ "US30/JP225-OTC": {
+  "anchor": "09:35",
+  "ratio": 59.7
+ },
+ "US500/JP225-OTC": {
+  "anchor": "09:35",
+  "ratio": 29.8
+ },
+ "USDARS-OTC": {
+  "anchor": "08:10",
+  "ratio": 100.4
+ },
+ "USDBDT-OTC": {
+  "anchor": "01:10",
+  "ratio": 101.4
+ },
+ "USDBOB-OTC": {
+  "anchor": "08:10",
+  "ratio": 192.8
+ },
+ "USDBRL-OTC": {
+  "anchor": "07:05",
+  "ratio": 38.0
+ },
+ "USDCAD-OTC": {
+  "anchor": "08:10",
+  "ratio": 34.7
+ },
+ "USDCLP-OTC": {
+  "anchor": "08:10",
+  "ratio": 40.4
+ },
+ "USDCOP-OTC": {
+  "anchor": "07:05",
+  "ratio": 34.4
+ },
+ "USDDOP-OTC": {
+  "anchor": "08:10",
+  "ratio": 26.7
+ },
+ "USDHKD-OTC": {
+  "anchor": "01:10",
+  "ratio": 37.7
+ },
+ "USDIDR-OTC": {
+  "anchor": "01:10",
+  "ratio": 43.2
+ },
+ "USDJPY-OTC": {
+  "anchor": "04:05",
+  "ratio": 18.4
+ },
+ "USDMXN-OTC": {
+  "anchor": "07:05",
+  "ratio": 79.9
+ },
+ "USDNGN-OTC": {
+  "anchor": "01:10",
+  "ratio": 36.8
+ },
+ "USDNOK-OTC": {
+  "anchor": "08:10",
+  "ratio": 14.1
+ },
+ "USDPHP-OTC": {
+  "anchor": "01:10",
+  "ratio": 17.2
+ },
+ "USDPLN-OTC": {
+  "anchor": "08:10",
+  "ratio": 31.8
+ },
+ "USDSEK-OTC": {
+  "anchor": "08:10",
+  "ratio": 45.7
+ },
+ "USDSGD-OTC": {
+  "anchor": "01:10",
+  "ratio": 33.5
+ },
+ "USDTHB-OTC": {
+  "anchor": "01:10",
+  "ratio": 35.4
+ },
+ "USDTRY-OTC": {
+  "anchor": "08:10",
+  "ratio": 33.8
+ },
+ "USDVND-OTC": {
+  "anchor": "01:10",
+  "ratio": 67.5
+ },
+ "USDZAR-OTC": {
+  "anchor": "08:10",
+  "ratio": 40.9
+ },
+ "USNDAQ100-OTC": {
+  "anchor": "18:05",
+  "ratio": 46.7
+ },
+ "USOUSD-OTC": {
+  "anchor": "08:10",
+  "ratio": 44.3
+ },
+ "WDC-OTC": {
+  "anchor": "18:40",
+  "ratio": 42.0
+ },
+ "WIFUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 46.0
+ },
+ "WLDUSD-OTC": {
+  "anchor": "20:50",
+  "ratio": 24.9
+ },
+ "XAGUSD-OTC": {
+  "anchor": "09:05",
+  "ratio": 53.2
+ },
+ "XAU/XAG-OTC": {
+  "anchor": "09:35",
+  "ratio": 55.6
+ },
+ "XAUUSD-OTC": {
+  "anchor": "08:10",
+  "ratio": 37.1
+ },
+ "XNGUSD-OTC": {
+  "anchor": "09:05",
+  "ratio": 73.5
+ },
+ "XPDUSD-OTC": {
+  "anchor": "09:05",
+  "ratio": 46.3
+ },
+ "XPTUSD-OTC": {
+  "anchor": "09:05",
+  "ratio": 53.7
+ },
+ "XRPUSD-OTC": {
+  "anchor": "01:10",
+  "ratio": 64.9
+ }
+}
