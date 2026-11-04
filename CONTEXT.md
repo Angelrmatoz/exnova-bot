@@ -168,6 +168,45 @@ operables son los de corrección parcial (67–73 %), que aún superan al 62,94 
 
 La app está **desinstalada**; el proyecto Ghidra conserva el programa importado.
 
+### Entorno de análisis
+
+| Elemento | Valor |
+|---|---|
+| `JAVA_HOME` | `C:\Program Files\Java\jdk-25.0.5.0.3` |
+| `GHIDRA_INSTALL_DIR` | `C:\Tools\ghidra_12.1.4_PUBLIC` |
+| Versión de Ghidra | 12.1.4 (REA solo admite la línea 12.1.x) |
+| REA MCP | `npx -y rea-agents@6.7.0 mcp` (caché en `%LOCALAPPDATA%\npm-cache\_npx\…`) |
+| Diagnóstico | `rea doctor` → ghidra, headless, native_decompiler y java en `healthy` |
+
+Importación usada (primera y única pasada larga):
+
+```
+analyzeHeadless C:\Tools\ghidra-proj Exnova ^
+  -import "C:\Program Files\Exnova\Exnova.exe" ^
+  -scriptPath C:\Tools\ghidra-scripts ^
+  -postScript DumpRefs.java <salida> <patrones> 25 ^
+  -max-cpu 12
+```
+
+con `MAXMEM=12G`. Tiempo: **80,1 min** (317.742 procedimientos). Después, sobre el proyecto ya
+guardado:
+
+```
+analyzeHeadless C:\Tools\ghidra-proj Exnova -process Exnova.exe -noanalysis ^
+  -scriptPath C:\Tools\ghidra-scripts -postScript DumpRefs.java <salida> <patrones> 3 40
+```
+
+→ **51 s**.
+
+**Lección operativa:** REA reimporta y reanaliza en cada operación
+(`import_mode: "ephemeral-source-immutable"`, proyecto temporal borrado al cerrar). Cada consulta
+cuesta ~80 min, así que solo se usó para la primera exploración; el resto se hizo conduciendo
+Ghidra directamente sobre el proyecto persistente.
+
+Sondas WS y scripts de diagnóstico: `%TEMP%\opencode\rea-exnova\` (`probe_ws*.py`, `probe_mood.py`,
+`dump_*.py`, `diag_*.py`, `check_windows*.py`, `anchor_probe.py`). **Están fuera del repo y son
+efímeros**: no se versionan.
+
 ### Naturaleza del binario
 
 C++ **nativo** (toolkit propio `F2::UIElement`, `F2::UIControl`, `F2::json::JsonValue`), sin
