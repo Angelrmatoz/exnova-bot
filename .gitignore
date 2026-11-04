@@ -24,3 +24,6 @@ data/
 # Base de datos SQLite generada en runtime
 bot_data.db
 db/
+# Contexto local (no versionar)
+Context.md
+CONTEXT.md
