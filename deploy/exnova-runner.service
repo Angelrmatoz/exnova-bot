@@ -1,0 +1,17 @@
+[Unit]
+Description=Exnova normal 5m runner
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=ubuntu
+SupplementaryGroups=docker
+Environment=HOME=/home/ubuntu
+Environment=DOCKER_CONFIG=/home/ubuntu/.docker
+WorkingDirectory=/opt/exnova-bot
+ExecStartPre=-/usr/bin/docker compose -f compose.runner.yml pull
+ExecStart=/usr/bin/docker compose -f compose.runner.yml run --rm -T runner
+TimeoutStartSec=8h
