@@ -1,0 +1,10 @@
+[Unit]
+Description=Exnova runner 07:55 UTC
+
+[Timer]
+OnCalendar=*-*-* 07:55:00 UTC
+Persistent=true
+Unit=exnova-runner.service
+
+[Install]
+WantedBy=timers.target
