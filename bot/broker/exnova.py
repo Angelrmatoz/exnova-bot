@@ -6,6 +6,7 @@ Cambiar de bróker = nuevo adapter.
 
 from bot.broker.base import BrokerClient
 from bot.broker.exnova_ws import ExnovaWSClient
+from bot.schedule import is_open as schedule_is_open
 
 
 class ExnovaAdapter(BrokerClient):
@@ -52,3 +53,6 @@ class ExnovaAdapter(BrokerClient):
     def get_payout(self, pair: str) -> float | None:
         """Payout del activo: fracción ganancia (0..1). None si no existe."""
         return self._client.get_payout(pair)
+
+    def is_open(self, pair: str) -> bool:
+        return schedule_is_open(self._client.get_schedule(pair), self._client.server_timestamp)
