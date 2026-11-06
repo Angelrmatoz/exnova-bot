@@ -27,6 +27,11 @@ db/
 
 .agents
 context.md
+Context.md
+CONTEXT.md
 
 # Local trader-skill workspace (config, state, PDFs)
 trader/
+
+# Playwright MCP logs
+.playwright-mcp/

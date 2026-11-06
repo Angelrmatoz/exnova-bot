@@ -1,6 +1,120 @@
 {
   "version": 1,
   "skills": {
+    "401-403-bypass-techniques": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/401-403-bypass-techniques/SKILL.md",
+      "computedHash": "8885c0aef6e93738f4b8f0188d89d35bfa2b737aacba327162e5a4fe55aed3e4"
+    },
+    "active-directory-acl-abuse": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/active-directory-acl-abuse/SKILL.md",
+      "computedHash": "1079b02c10abf3bdc375dd627a02d80dc242937fe5b7d0cfbcf101d08821c61b"
+    },
+    "active-directory-certificate-services": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/active-directory-certificate-services/SKILL.md",
+      "computedHash": "e5b2fd78da5f084b312d104a8bbdedd045f12ff9dc0b053d9d47a2cbe66dce45"
+    },
+    "active-directory-kerberos-attacks": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/active-directory-kerberos-attacks/SKILL.md",
+      "computedHash": "4b772d07ea82bab22735a768faa11cf92677586e800f348620cf0e9dde85b45c"
+    },
+    "ai-ml-security": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ai-ml-security/SKILL.md",
+      "computedHash": "22fc89055c72abdbb7d96b8c03c856ff0381e8def5231bbe49f1047952881349"
+    },
+    "android-pentesting-tricks": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/android-pentesting-tricks/SKILL.md",
+      "computedHash": "f50c80429b464c66fdc8fe71be1ec4bbf6a0f79567fb6a38d4c2812831e9dadc"
+    },
+    "anti-debugging-techniques": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/anti-debugging-techniques/SKILL.md",
+      "computedHash": "d7f4daf5316f541d60d23be9b1dff78c7330cfbcc9b8edb5651152a7beddf2ac"
+    },
+    "api-auth-and-jwt-abuse": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/api-auth-and-jwt-abuse/SKILL.md",
+      "computedHash": "48949febc42326708f62078fe02d1c7b8d5a0cfb7588ebe8deebb67a3571d1a9"
+    },
+    "api-authorization-and-bola": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/api-authorization-and-bola/SKILL.md",
+      "computedHash": "e29cfb03cd1ea542ab6bfe90a3e9ef29b634896d18d2196197cfa8155e7ccd05"
+    },
+    "api-recon-and-docs": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/api-recon-and-docs/SKILL.md",
+      "computedHash": "12247e2d74ea9cfbec31d08574c49dac8e1dd5ebd1546d6eb09d5b5f522e6ea2"
+    },
+    "api-sec": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/api-sec/SKILL.md",
+      "computedHash": "e1fa926130e312e1f837d48678859c29e6e17f9ecb992a0c30695420740402a3"
+    },
+    "arbitrary-write-to-rce": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/arbitrary-write-to-rce/SKILL.md",
+      "computedHash": "afb1e12094c4d2aabcacdf9a89398b34b0c151243b1575ad7da8873d17db1624"
+    },
+    "attack-surface-mapping": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/attack-surface-mapping/SKILL.md",
+      "computedHash": "726a64a73b9bec1908fa551162078acf483cba49ddfc912cc50ac541591f2b05"
+    },
+    "auth-sec": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/auth-sec/SKILL.md",
+      "computedHash": "3e165acf33c9b4f06141607d26aca4db0aec42deeba903280cb0918d0a4dd60b"
+    },
+    "authbypass-authentication-flaws": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/authbypass-authentication-flaws/SKILL.md",
+      "computedHash": "f90d721c23820cb948c2122fe0ff53d994b5a14256f13c50db21fa91c6b89dde"
+    },
+    "binary-protection-bypass": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/binary-protection-bypass/SKILL.md",
+      "computedHash": "651244c97862b57430e3e1072dc30d92f82f80c8d0d4839b5c71c81c6cfc0d28"
+    },
+    "browser-exploitation-v8": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/browser-exploitation-v8/SKILL.md",
+      "computedHash": "25fe9a34455cd30295a6eda016b0a5926e2c1ea7e4a4470e9f03f6eb95949e3e"
+    },
+    "business-logic-vuln": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/business-logic-vuln/SKILL.md",
+      "computedHash": "70b4d54c63aac7f12c2f38ea50c3805b6e29fb6ef2e9f04975e115132380f26c"
+    },
+    "business-logic-vulnerabilities": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/business-logic-vulnerabilities/SKILL.md",
+      "computedHash": "4e32a171fa5cc36b9fbda507fe66d8f6f1d7203eb9b73637184bc3c5a2cdea43"
+    },
     "cavecrew": {
       "source": "JuliusBrussee/caveman",
       "sourceType": "github",
@@ -43,6 +157,306 @@
       "skillPath": "skills/caveman-stats/SKILL.md",
       "computedHash": "8af346212f6b63d51f90a9d336221d106a8d7e7350642227b94ad37aefdbf201"
     },
+    "classical-cipher-analysis": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/classical-cipher-analysis/SKILL.md",
+      "computedHash": "90576abe8d0b8f2e1c2531318626a986febb4ee66934cc022c707a465c0c9073"
+    },
+    "clickjacking": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/clickjacking/SKILL.md",
+      "computedHash": "2a9c4bf215dc141a214bc4102670bb9b6053df733bec1bc018cec15e985304c6"
+    },
+    "cmdi-command-injection": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/cmdi-command-injection/SKILL.md",
+      "computedHash": "9147b6bd89986a0ad9bee8488ac7ad25ee8525a68dfd2bd45f054e239e4f536e"
+    },
+    "code-obfuscation-deobfuscation": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/code-obfuscation-deobfuscation/SKILL.md",
+      "computedHash": "ed37832afb34a27695150311129b467c81f6ab45534141a45113bfe012167792"
+    },
+    "container-escape-techniques": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/container-escape-techniques/SKILL.md",
+      "computedHash": "f0d65fdd62902b333f80ed97283501b4c6b1da2f7f207007d56ad55295006de4"
+    },
+    "cors-cross-origin-misconfiguration": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/cors-cross-origin-misconfiguration/SKILL.md",
+      "computedHash": "7731dcbde9e3b97269d440be13ad27a5ac7eee0946a5dda10378132924863b1b"
+    },
+    "crlf-injection": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/crlf-injection/SKILL.md",
+      "computedHash": "0537ac138b11769ab4ddbe197b1279a48e8a80be396c5757369a39812ffaab53"
+    },
+    "csp-bypass-advanced": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/csp-bypass-advanced/SKILL.md",
+      "computedHash": "a0016549b9218b86a7e2dfb6cfdd27047db21636f5da136a5c7b2f0fd41c65ed"
+    },
+    "csrf-cross-site-request-forgery": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/csrf-cross-site-request-forgery/SKILL.md",
+      "computedHash": "ade0b61812cc60d5df900cfaf26b9379f469a62d64c7c9ea1408826ec0ca232b"
+    },
+    "csv-formula-injection": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/csv-formula-injection/SKILL.md",
+      "computedHash": "1e203ac46ccd71b16a8337b71e408ac9a732fd17a6d9694871512cb9b958bb35"
+    },
+    "dangling-markup-injection": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/dangling-markup-injection/SKILL.md",
+      "computedHash": "a5c195671a77661c5a1ddde42cae4560e62cd2d985ad385ee51e414dfd7bdb1b"
+    },
+    "defi-attack-patterns": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/defi-attack-patterns/SKILL.md",
+      "computedHash": "489e06e156beadd89f4026cdf1d35f052d524f68028dba0e44cf9e27060c8728"
+    },
+    "dependency-confusion": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/dependency-confusion/SKILL.md",
+      "computedHash": "bd32df9fc36b185aef2bac29508cac673209055592e036931be37f391a176deb"
+    },
+    "deserialization-insecure": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/deserialization-insecure/SKILL.md",
+      "computedHash": "2d298fadefc7ad24318c99632225c162268d25805130cc51999f19e664057349"
+    },
+    "dns-rebinding-attacks": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/dns-rebinding-attacks/SKILL.md",
+      "computedHash": "50992ae75e37c966ba93ab6521fd8f05142de7e9c1c8708743df003466031f05"
+    },
+    "email-header-injection": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/email-header-injection/SKILL.md",
+      "computedHash": "456f58101d06ffb11e7bfe59157606a86d28f6a3419cd68d17b55bbaf128a61a"
+    },
+    "expression-language-injection": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/expression-language-injection/SKILL.md",
+      "computedHash": "276a8a7df505471e47e3409921242aae2c161007f3345e6973d01f7815fa0d23"
+    },
+    "file-access-vuln": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/file-access-vuln/SKILL.md",
+      "computedHash": "04661726585d78f520cbc6aff70b5c2e7f6e2a2a40122cab04630be1078a55d4"
+    },
+    "format-string-exploitation": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/format-string-exploitation/SKILL.md",
+      "computedHash": "0baa26567d91d08465fd0cd1b17878e4205737f9d8414e88bafb9db808ab4692"
+    },
+    "ghost-bits-cast-attack": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ghost-bits-cast-attack/SKILL.md",
+      "computedHash": "71cee0da1bf057e85a4921376637951970749694622eb09fcc3d12783e64fde9"
+    },
+    "graphql-and-hidden-parameters": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/graphql-and-hidden-parameters/SKILL.md",
+      "computedHash": "f01ceab990e4cfbf2eb0bf067dac8fa0bfdbbe1dcb105c33b9a66b51dc1a7585"
+    },
+    "hack": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/hack/SKILL.md",
+      "computedHash": "063184effa7a393568b5f4f37397e5c0aecb564af38f5753ca61786b2f738b46"
+    },
+    "hash-attack-techniques": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/hash-attack-techniques/SKILL.md",
+      "computedHash": "b1d70576e3c1931fd466ccb082d54d64c06287880c17327e2151bca943e75c6f"
+    },
+    "heap-exploitation": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/heap-exploitation/SKILL.md",
+      "computedHash": "65e82ca9d8e889b74774796f1b8c15fb33eacbb0e79f5edaa2f78d1ba08300ac"
+    },
+    "http-host-header-attacks": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/http-host-header-attacks/SKILL.md",
+      "computedHash": "887bbb8bf0e1dff4c5a7611cce4d6ddb64eb3bab6c657ad067297fae63be3780"
+    },
+    "http-parameter-pollution": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/http-parameter-pollution/SKILL.md",
+      "computedHash": "214acccba14b1913b5cce4417d862937b71e9ff7776b23d6c5050eebebd475d2"
+    },
+    "http2-specific-attacks": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/http2-specific-attacks/SKILL.md",
+      "computedHash": "48f044ff8df49c488b620dd36c796f3a74d78b11fb31c5c9c28bedc36842157f"
+    },
+    "idor-broken-object-authorization": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/idor-broken-object-authorization/SKILL.md",
+      "computedHash": "e8482d045aa71c0ce3768be7f5fc68e31ac76ffc16637156013dca535a024cde"
+    },
+    "injection-checking": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/injection-checking/SKILL.md",
+      "computedHash": "1d3582c20963a55d080dc50a15fd3b976ee3df73abdf664ff2bdc6a8f207d7aa"
+    },
+    "insecure-source-code-management": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/insecure-source-code-management/SKILL.md",
+      "computedHash": "fbf63c4ecabe9a7136ef65cfa21b96fdabbe111154346629869130c2ba9a500b"
+    },
+    "ios-pentesting-tricks": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ios-pentesting-tricks/SKILL.md",
+      "computedHash": "9e8c8c22198310ccd57b1e6f1bfeefd82ef465141e2dbbb89b5d7180e36e965c"
+    },
+    "jndi-injection": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/jndi-injection/SKILL.md",
+      "computedHash": "5f9d31f092e119735289ad2950eba0dd75529be487ea57ef284840784ef2064f"
+    },
+    "jwt-oauth-token-attacks": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/jwt-oauth-token-attacks/SKILL.md",
+      "computedHash": "604bb3bd5388b7c3edab8bacc648d0f0efab4aee9a2ed6abbd3194ce9a6caa57"
+    },
+    "kernel-exploitation": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/kernel-exploitation/SKILL.md",
+      "computedHash": "c5f655efbafbe2be648271a3738dc4b96f66ba5c81f8b1bdd1bbd0b9a1e5e22b"
+    },
+    "kubernetes-pentesting": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/kubernetes-pentesting/SKILL.md",
+      "computedHash": "7e765d80f95021a36c2d132b69afa53ea4900ec8d397a46614effd1f43f34a34"
+    },
+    "lattice-crypto-attacks": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/lattice-crypto-attacks/SKILL.md",
+      "computedHash": "cca2516134c040871a3af3726ea0a2853a5c67cae624d1ff4df8f75c77b47679"
+    },
+    "linux-lateral-movement": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/linux-lateral-movement/SKILL.md",
+      "computedHash": "13af7c7d61321425f0b9a0f782f5839f58b6118148ae5854e3115c8ceb4a88f5"
+    },
+    "linux-privilege-escalation": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/linux-privilege-escalation/SKILL.md",
+      "computedHash": "4516953a703648003ad1dfc20ff8b161bb9eee12fcd69cf72fe9108fadfbd479"
+    },
+    "linux-security-bypass": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/linux-security-bypass/SKILL.md",
+      "computedHash": "1d1798f946c649cf2115085f7af79c31e1f66023f29c90881d64fa23a5ba9442"
+    },
+    "llm-prompt-injection": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/llm-prompt-injection/SKILL.md",
+      "computedHash": "a5515198efc7210129c7d071a57cdf68f75d9dd5aeb83828f44213b28ce9612f"
+    },
+    "macos-process-injection": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/macos-process-injection/SKILL.md",
+      "computedHash": "cbfc5dab318b073ad8f74e9aa8cf8b340b357af2adeabd81c1d8d1783fc4bab5"
+    },
+    "macos-security-bypass": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/macos-security-bypass/SKILL.md",
+      "computedHash": "02a5fe5336d2e51097017067eb3ff8049a3d911e50d6fbac8f43aa5c2dd0c73a"
+    },
+    "memory-forensics-volatility": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/memory-forensics-volatility/SKILL.md",
+      "computedHash": "1928926f5176ee960f26376a3489ca3e05fc9026dab448e8be46ba98ab2bd261"
+    },
+    "mobile-ssl-pinning-bypass": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mobile-ssl-pinning-bypass/SKILL.md",
+      "computedHash": "763fed941427b563dc911c998e9d49ee51a31954ead3550c64fdadc52218e92e"
+    },
+    "network-protocol-attacks": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/network-protocol-attacks/SKILL.md",
+      "computedHash": "709fbbb5d5cf32efa7ebdd44b474df96362856545a1d93030a237dbe9c6c61d5"
+    },
+    "nosql-injection": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/nosql-injection/SKILL.md",
+      "computedHash": "f26595e1bb2f6e2907027608af76608cc8d3271a0dc36f54f788ff55f9b7b331"
+    },
+    "ntlm-relay-coercion": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ntlm-relay-coercion/SKILL.md",
+      "computedHash": "3b5aa004561c7238dce8e8461207bdcb1d8e711e14c09cb578cc113329bfb59f"
+    },
+    "oauth-oidc-misconfiguration": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/oauth-oidc-misconfiguration/SKILL.md",
+      "computedHash": "8bbbe2400ed6f813cac28c34cf829b22933687a979513ba43ba8ec6656efb3e6"
+    },
+    "open-redirect": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/open-redirect/SKILL.md",
+      "computedHash": "b7359be187b69a7aa9577952e429847620b27a3070112ddde444605446460f42"
+    },
+    "path-traversal-lfi": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/path-traversal-lfi/SKILL.md",
+      "computedHash": "96e2358ef5297fd84ef5d0a4f3138a4d0760ed64a817f34204e6300673e7cfb2"
+    },
     "ponytail": {
       "source": "DietrichGebert/ponytail",
       "ref": "main",
@@ -84,6 +498,306 @@
       "sourceType": "github",
       "skillPath": "skills/ponytail-review/SKILL.md",
       "computedHash": "d68b62a2fb83972ca8a9f7f20851baf6563bb7908bc81002214c6c1141486c25"
+    },
+    "prototype-pollution": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/prototype-pollution/SKILL.md",
+      "computedHash": "3348b42d1a352f911a4c912ac5403875158ec35133a108a75e0061e39418f162"
+    },
+    "prototype-pollution-advanced": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/prototype-pollution-advanced/SKILL.md",
+      "computedHash": "56896a934d3e2a7550126fa3e947f01b20872294ed44fa818f5e4e16a9d61519"
+    },
+    "race-condition": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/race-condition/SKILL.md",
+      "computedHash": "4a964eab903e34c8b6eb21487db0c6f946e5640490f9c969f6abe814b57ef71e"
+    },
+    "rea-analysis-optimization": {
+      "source": "morluto/rea",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/rea-analysis-optimization/SKILL.md",
+      "computedHash": "a7d0fcdf9aaf9dbf30724c78c1087cd5f78d09169d96796a8376ce9681a8fe4f"
+    },
+    "rea-changelog-update": {
+      "source": "morluto/rea",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/rea-changelog-update/SKILL.md",
+      "computedHash": "9ee602e608081344dafc5901fbe3f6509197b245d482bc97203cb7c2afdb5b75"
+    },
+    "rea-ci-tests-audit": {
+      "source": "morluto/rea",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/rea-ci-tests-audit/SKILL.md",
+      "computedHash": "66bacc26230b7157e69add008656302b16b90df5c776130ce20fd6f5ef6ef8b6"
+    },
+    "rea-tool-design": {
+      "source": "morluto/rea",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/rea-tool-design/SKILL.md",
+      "computedHash": "0aa008d4057dc70be7ace5645107d725fe3c76d20c88b3fe4b8571d43fbdf116"
+    },
+    "recon-and-methodology": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/recon-and-methodology/SKILL.md",
+      "computedHash": "d855345c686a247d79544f1cd66183b1ef9bcc94dc23f3e97001f38af65d274e"
+    },
+    "recon-for-sec": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/recon-for-sec/SKILL.md",
+      "computedHash": "a3b1267c2691e794ec77f77c5a0f443146b879b51137067fad2b541eabcef09a"
+    },
+    "request-smuggling": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/request-smuggling/SKILL.md",
+      "computedHash": "ea196c5f2abc06cdf051be9b627d4ca6a28918fbe305e9b8d3078fedfa3b729e"
+    },
+    "reverse-engineer-anything": {
+      "source": "morluto/rea",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/reverse-engineer-anything/SKILL.md",
+      "computedHash": "d30a7feffbea4c3ee741ccee95605bb136ee8e184db779c925d930578262e1c3"
+    },
+    "reverse-shell-techniques": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/reverse-shell-techniques/SKILL.md",
+      "computedHash": "36f7c0d5c51a5bf1d1e720663889eca9ddade7cc8d17e2e2815bf6aa9d20525a"
+    },
+    "rsa-attack-techniques": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/rsa-attack-techniques/SKILL.md",
+      "computedHash": "f587a11e841f8c05e458abf414ad66df3d7997e208d45d08fef24426afea2576"
+    },
+    "saml-sso-assertion-attacks": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/saml-sso-assertion-attacks/SKILL.md",
+      "computedHash": "0d61a262436fe1a3bc51902ae087fc00ec5099c4e4494414b3b22f4b74db52c3"
+    },
+    "sandbox-escape-techniques": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/sandbox-escape-techniques/SKILL.md",
+      "computedHash": "b9ce79d5ccdf40124e3f2c918b2aea3b827f4a886bef347e9f7622939dcc5d38"
+    },
+    "smart-contract-vulnerabilities": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/smart-contract-vulnerabilities/SKILL.md",
+      "computedHash": "60259706250bc0c4053776c4d0489ae1e3e0dc941ce52cec7c17996fe73a21ab"
+    },
+    "sqli-sql-injection": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/sqli-sql-injection/SKILL.md",
+      "computedHash": "8829541ba420c7458bff1abbb63da45f194a4d5ebe503f8111d44c331423d04d"
+    },
+    "ssrf-server-side-request-forgery": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ssrf-server-side-request-forgery/SKILL.md",
+      "computedHash": "5fc167733802a1efd44e591948382d639b723fe563d993ba7c0b2c8333cc00d7"
+    },
+    "ssti-server-side-template-injection": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ssti-server-side-template-injection/SKILL.md",
+      "computedHash": "7e00c1c94773cc8f121593a240517f964a27e7592d35a71e65aec712e1841433"
+    },
+    "stack-overflow-and-rop": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/stack-overflow-and-rop/SKILL.md",
+      "computedHash": "af5ccef5d52543c46bc23d039bb02e5950b3d78608c55e10abc0d9bd0a0f3f87"
+    },
+    "steganography-techniques": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/steganography-techniques/SKILL.md",
+      "computedHash": "fe599abb7b8c72cb8fdce96e46887afc1e771c852ad251ef1d2de8fb601cf03c"
+    },
+    "subdomain-takeover": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/subdomain-takeover/SKILL.md",
+      "computedHash": "7ce50d1a0595fcf14ad5c577c637572a53bec6df4195b017bd70ba7c1a5b2ab5"
+    },
+    "symbolic-execution-tools": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/symbolic-execution-tools/SKILL.md",
+      "computedHash": "5c450ca22bf26e2a2a60964531bc46cf47fcbcb4631fb01038a48e12a0c572b4"
+    },
+    "symmetric-cipher-attacks": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/symmetric-cipher-attacks/SKILL.md",
+      "computedHash": "5222b96f391342e530ebfde88c7faf5be105582c0cc8130a6c20cdc426a7a984"
+    },
+    "trader-alerts": {
+      "source": "Jakeschincariol/trader-skill",
+      "sourceType": "github",
+      "skillPath": "trader-alerts/SKILL.md",
+      "computedHash": "2268f56cf6b21d5c2fd024b916116accc12487c6301e5fa41c8516e1c3df357b"
+    },
+    "trader-analyst": {
+      "source": "Jakeschincariol/trader-skill",
+      "sourceType": "github",
+      "skillPath": "trader-analyst/SKILL.md",
+      "computedHash": "a3fff0c6ac64b5e6b682ed2a35d35b67d5681a371888323770e4c000ce2a7c48"
+    },
+    "trader-broker": {
+      "source": "Jakeschincariol/trader-skill",
+      "sourceType": "github",
+      "skillPath": "trader-broker/SKILL.md",
+      "computedHash": "adc1e8c8ec42ca62ab9de2735488406151ef4911e4e7b7eb661e55e3313f55f7"
+    },
+    "trader-budget": {
+      "source": "Jakeschincariol/trader-skill",
+      "sourceType": "github",
+      "skillPath": "trader-budget/SKILL.md",
+      "computedHash": "147d351afdc8a0eb23b27b671772bd51ee2ee19b336c50ef397b928745b9177c"
+    },
+    "trader-copycat": {
+      "source": "Jakeschincariol/trader-skill",
+      "sourceType": "github",
+      "skillPath": "trader-copycat/SKILL.md",
+      "computedHash": "e926cfe6aaefaee0746d2d9279283b47c576e9493ca3224466fa6948a3dddea4"
+    },
+    "trader-news": {
+      "source": "Jakeschincariol/trader-skill",
+      "sourceType": "github",
+      "skillPath": "trader-news/SKILL.md",
+      "computedHash": "dd8704d3bd964c8b41fd628e634e6140a50cc48ff2476b5619ef31978123e153"
+    },
+    "trader-pelosi": {
+      "source": "Jakeschincariol/trader-skill",
+      "sourceType": "github",
+      "skillPath": "trader-pelosi/SKILL.md",
+      "computedHash": "4886727225d9565890bee663aef5018afa6fa7d7c995b729be4a726021c07712"
+    },
+    "trader-rebalance": {
+      "source": "Jakeschincariol/trader-skill",
+      "sourceType": "github",
+      "skillPath": "trader-rebalance/SKILL.md",
+      "computedHash": "501b5f24fddcff078350f2e4e931f2cd914931d1d49afe08fc077eabd3d4e726"
+    },
+    "trader-risk": {
+      "source": "Jakeschincariol/trader-skill",
+      "sourceType": "github",
+      "skillPath": "trader-risk/SKILL.md",
+      "computedHash": "ffd0cfc26f61c316c122030c6cc4cdc6f810df5f09a7032d02d3e99a0543fb90"
+    },
+    "trader-screener": {
+      "source": "Jakeschincariol/trader-skill",
+      "sourceType": "github",
+      "skillPath": "trader-screener/SKILL.md",
+      "computedHash": "700549c80ba33c770dfc125d92d1523dda02bc014b4cfe0948ca8b00222b6531"
+    },
+    "trader-tax": {
+      "source": "Jakeschincariol/trader-skill",
+      "sourceType": "github",
+      "skillPath": "trader-tax/SKILL.md",
+      "computedHash": "da6ef33aa728d4d6c193b63239a5fb9c4fc7bcd2a67b21c22417a38d9a5c7194"
+    },
+    "traffic-analysis-pcap": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/traffic-analysis-pcap/SKILL.md",
+      "computedHash": "35820d1203fe4eb200f3d6b6f6ae6a652acdc60381b97879275858bf4bbf7af2"
+    },
+    "tunneling-and-pivoting": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/tunneling-and-pivoting/SKILL.md",
+      "computedHash": "a775fe729950f281a5a360490799f926ef8154be23190992724307f2aa582b63"
+    },
+    "type-juggling": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/type-juggling/SKILL.md",
+      "computedHash": "245b05482b5b28dc94cc72958c4d41134505649e69181ba6c45280b01575ffd5"
+    },
+    "unauthorized-access-common-services": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/unauthorized-access-common-services/SKILL.md",
+      "computedHash": "4e837fc81dc172e7521d8a4cc8991f8cd4e326b20ada19627e82c259225d0394"
+    },
+    "upload-insecure-files": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/upload-insecure-files/SKILL.md",
+      "computedHash": "8f46b2e50ab0631d9f42896b324c2e7ead9c05c5f6ae6bc423fa4678bfb699c8"
+    },
+    "vm-and-bytecode-reverse": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/vm-and-bytecode-reverse/SKILL.md",
+      "computedHash": "98d03da8c590412e415a184db264c8e11c5653759061edec521bedda0276edbb"
+    },
+    "waf-bypass-techniques": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/waf-bypass-techniques/SKILL.md",
+      "computedHash": "1ecff974249168f7d3e6252756687b1983ccd2297267dab32c3a162a05a87817"
+    },
+    "web-cache-deception": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/web-cache-deception/SKILL.md",
+      "computedHash": "b5fac1a6db60cb4be7327291c3622ca15dd1edb3ef991835295afcbc7ce4482a"
+    },
+    "websocket-security": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/websocket-security/SKILL.md",
+      "computedHash": "6be901e12bc7e101d8f7f768c17a0d7952625d8ea1e142663b4cdd5b97307c35"
+    },
+    "windows-av-evasion": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/windows-av-evasion/SKILL.md",
+      "computedHash": "08e9936b6b637902e789b6d54866283bf89c6ae79f999e8d750e40fab4f50814"
+    },
+    "windows-lateral-movement": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/windows-lateral-movement/SKILL.md",
+      "computedHash": "e4e5030b2ec0e14ab1829f9676599c77b28ab8980cf536b81b95c17eca8cfc5e"
+    },
+    "windows-privilege-escalation": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/windows-privilege-escalation/SKILL.md",
+      "computedHash": "8081dfc488930146bd77f397d286d1b82c79770b6c12759d7a16efeb241d66ac"
+    },
+    "xslt-injection": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/xslt-injection/SKILL.md",
+      "computedHash": "e163acc491b9d2d785ba4db047c378702d02081649ae39d9481e438e0fd674ad"
+    },
+    "xss-cross-site-scripting": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/xss-cross-site-scripting/SKILL.md",
+      "computedHash": "651f74917f8d58b154c562fc05eabef553e89db2a9ecafc0fe286d0851dc84e5"
+    },
+    "xxe-xml-external-entity": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/xxe-xml-external-entity/SKILL.md",
+      "computedHash": "f7843bd94ab2f1dcb1c8f295f961ca5eafa3f2a2a05a779aee3061a5ff4bfe37"
     }
   }
 }
