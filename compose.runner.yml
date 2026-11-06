@@ -1,6 +1,6 @@
 services:
   runner:
-    image: ghcr.io/angelrmatoz/exnova-bot-runner:latest
+    image: ghcr.io/angelrmatoz/exnova-bot-runner:dev
     build:
       context: .
       dockerfile: Dockerfile.runner
