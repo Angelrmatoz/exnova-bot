@@ -1,0 +1,21 @@
+services:
+  runner:
+    image: ghcr.io/angelrmatoz/exnova-bot-runner:dev
+    build:
+      context: .
+      dockerfile: Dockerfile.runner
+    env_file: .env
+    environment:
+      BOT_DB_PATH: /app/db/bot_data.db
+    volumes:
+      - ./db:/app/db
+    init: true
+    restart: "no"
+    stop_grace_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
