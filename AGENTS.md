@@ -69,7 +69,7 @@ Verificar imports tras mover archivos: `uv run python -c "from <modulo> import .
 - Imagen: `Dockerfile.runner` (multi-stage, non-root, solo deps del runner), `requirements-runner.txt`, `compose.runner.yml`; GHCR `ghcr.io/angelrmatoz/exnova-bot-runner`. El workflow `docker-runner.yml` corre tests y publica `:dev`/`:latest` con actions Node 24.
 - **Nunca dos runners:** si Oracle está activo, Windows debe estar deshabilitado. Dos runners duplican órdenes.
 - Exhaustion sobre vela 5m cerrada: rango ≥2×ATR14, cuerpo ≥60 %, cierre fuera Bollinger(20,2), excluye velas con RSI extremo. Entrada al open siguiente.
-- Schedule manda: los `-op` cierran 18:00–19:30 UTC (verificado en vivo 04-nov; 19–22 UTC queda CLOSED aunque el backtest tenga velas). `normal_five` **no** chequea schedule: si el par está cerrado, la orden se rechaza. Revisar con `asset_hours.py` antes de cada sesión.
+- Schedule manda: los `-op` cierran 18:00–19:30 UTC (verificado en vivo 04-nov; 19–22 UTC queda CLOSED aunque el backtest tenga velas). `normal_five` filtra por schedule: `broker.is_open()` lee las ventanas de initialization-data y omite pares cerrados (y sale con 0 ops si ninguno abre). El timer de Oracle corre solo Mon-Fri. Revisar con `asset_hours.py` antes de cada sesión.
 - WS frágil: un corte (`WebSocketConnectionClosedException`) mata el runner salvo que el tramo tenga reintento (hoy solo la lectura de velas del loop lo tiene; visto 05-nov 10:40 UTC). Si tocas el loop, conserva el reintento y no lo conviertas en `break` silencioso.
 - `trade_logs.market_type`: `NORMAL` (sesión activa) vs `ANCHOR` (OTC suspendido, referencia en `C:\Tools\anchor_*.py`).
 

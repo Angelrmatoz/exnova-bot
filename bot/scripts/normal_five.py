@@ -97,10 +97,16 @@ def main() -> int:
         balance = broker.get_balance()
         stake = round(args.stake, -2)
         low = [p for p in PAIRS if (broker.get_payout(p) or 0) < MIN_PAYOUT]
-        pairs = [p for p in PAIRS if p not in low]
+        closed = [p for p in PAIRS if p not in low and not broker.is_open(p)]
+        pairs = [p for p in PAIRS if p not in low and p not in closed]
         print(f"balance={balance:,.2f} stake={stake:,.0f} pares={','.join(pairs)}", flush=True)
         if low:
             print(f"payout bajo: {','.join(low)}", flush=True)
+        if closed:
+            print(f"cerrados: {','.join(closed)}", flush=True)
+        if not pairs:
+            print("sin pares operables (cerrado); fin.", flush=True)
+            return 0
 
         if args.dry_run:
             probe = broker.get_candles(pairs[0], "5m", 2) if pairs else []
@@ -153,6 +159,9 @@ def main() -> int:
                 print(f"vela {clock:.0f}: sin setup.", flush=True)
                 continue
             pair, side, conf = found
+            if not broker.is_open(pair):
+                print(f"[{pair}] cerrado; se omite.", flush=True)
+                continue
             order_id = broker.place_order(pair, side, stake, "30m")
             if order_id is None:
                 print(f"[{pair}] orden rechazada; fin.")

@@ -26,3 +26,7 @@ class BrokerClient(ABC):
     @abstractmethod
     def get_balance(self) -> float:
         """Devuelve el balance disponible en la cuenta."""
+
+    def is_open(self, pair: str) -> bool:
+        """True si el activo acepta órdenes ahora. Por defecto se asume abierto."""
+        return True

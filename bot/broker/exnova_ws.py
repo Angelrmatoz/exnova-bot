@@ -461,6 +461,15 @@ class ExnovaWSClient:
                     return (100.0 - commission) / 100.0
         return None
 
+    def get_schedule(self, pair: str) -> list | None:
+        """Ventanas [inicio, fin] epoch UTC del activo, desde initialization-data."""
+        data = self._init_v2 if self._init_v2 is not None else (self.get_all_init_v2() or {})
+        for option in ("binary", "turbo"):
+            for active in data.get(option, {}).get("actives", {}).values():
+                if _asset_name(active["name"]) == pair:
+                    return active.get("schedule")
+        return None
+
     # --------------------------------------------------------------- trading
 
     def buy(self, pair: str, side: str, amount: float, duration: str) -> tuple[bool, str | None]:
