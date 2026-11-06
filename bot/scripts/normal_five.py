@@ -15,8 +15,8 @@ from bot.db import get_win_rate, log_trade
 from bot.ml.features import build_features
 from bot.session import normalize_result, should_stop
 
-PAIRS = ("EURGBP-op", "CADCHF-op", "GBPJPY-op", "GBPUSD-op", "EURAUD-op")
-HOURS_UTC = frozenset(range(19, 23))
+PAIRS = ("EURUSD-op", "NZDUSD-op", "EURGBP-op")
+HOURS_UTC = frozenset((8, 9, 10, 13))
 MARKET = "NORMAL"
 STEP = 300
 MIN_PAYOUT = 0.86
@@ -121,7 +121,12 @@ def main() -> int:
         while not should_stop(wins, losses, trades):
             clock = None
             for pair in pairs:
-                candles = broker.get_candles(pair, "5m", 2)
+                try:
+                    candles = broker.get_candles(pair, "5m", 2)
+                except Exception as e:
+                    print(f"velas error: {e}; reintento.", flush=True)
+                    time.sleep(5)
+                    continue
                 if len(candles) >= 2:
                     clock = candles[-2]["time"]
                     break
