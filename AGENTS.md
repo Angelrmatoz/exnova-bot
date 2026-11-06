@@ -73,6 +73,19 @@ Verificar imports tras mover archivos: `uv run python -c "from <modulo> import .
 - WS frágil: un corte (`WebSocketConnectionClosedException`) mata el runner salvo que el tramo tenga reintento (hoy solo la lectura de velas del loop lo tiene; visto 05-nov 10:40 UTC). Si tocas el loop, conserva el reintento y no lo conviertas en `break` silencioso.
 - `trade_logs.market_type`: `NORMAL` (sesión activa) vs `ANCHOR` (OTC suspendido, referencia en `C:\Tools\anchor_*.py`).
 
+## Operación Oracle y despliegue
+
+- **Timer:** `exnova-runner.timer` dispara `exnova-runner.service` a las **07:55 UTC**. El servicio hace `docker compose pull` de `:latest` y luego `docker compose run --rm -T runner`.
+- **Pre-sesión (03:45 RD):** `systemctl list-timers exnova-runner.timer`, `systemctl is-active exnova-runner.service`, `docker compose ps`, `free -h`, `df -h`, `asset_hours.py` de los 3 pares, payout y evento macro del día.
+- **Post-sesión:** `journalctl -u exnova-runner.service --since today`, revisar `trade_logs` de `NORMAL`, PnL y winrate. No cambiar la estrategia por una racha.
+- **Pull manual:** `cd /opt/exnova-bot && sudo -H -u ubuntu -g docker docker compose -f compose.runner.yml pull`.
+- **Rollback:** fijar en `compose.runner.yml` el tag `sha-<commit>` anterior, `pull`, `run --dry-run` y dejar el timer. No reactivar Windows sin desactivar antes el timer.
+- **Incidentes:** WS caído → revisar el reintento de velas; `pull` falla → usa la imagen cacheada; timer perdido → `systemctl start exnova-runner.service` solo si la ventana sigue abierta; DB → backup antes de tocar.
+- **Nunca dos runners:** Oracle activo ⇒ Windows `ExnovaNormal0813` deshabilitado.
+- **Despliegue:** commit en `dev` → CI → PR `dev`→`main` → merge → `:latest` → Oracle hace `pull` en la siguiente sesión. No cambiar `PAIRS`, `HOURS`, `MIN_PAYOUT`, stake ni máx 3 sin backtest + PR.
+- **Payout:** `MIN_PAYOUT=0.86` no es decorativo: payout 0,86 ⇒ breakeven 53,76 %. Bajarlo sin backtest cambia la expectancy. No quitar el filtro por preferencia.
+- **Handoff:** `Context.md` es local/untracked; `AGENTS.md` sí se commitea. No commitear `.env`, `db/`, `trader/` ni llaves.
+
 ## Estructura
 
 ```text
