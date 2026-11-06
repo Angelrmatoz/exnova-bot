@@ -135,7 +135,7 @@ bot_data.db       # SQLite (model_versions; trade_logs)
 
 - Todo secreto vía `.env` (excluido de git). Plantilla: `.env.example`.
 - Nunca muestres ni hardcodees credenciales, tokens o claves.
-- Oracle: `.env` en `/opt/exnova-bot/.env` (600); `db/` propiedad UID 10001. GHCR usa un PAT clásico `read:packages` guardado en `/home/ubuntu/.docker/config.json` (600). Ni el PAT ni la llave SSH van al repo.
+- Oracle: `.env` en `/opt/exnova-bot/.env` (600); `db/` en 700 y `bot_data.db` en 600, propiedad UID 10001. GHCR usa un PAT clásico `read:packages` guardado en `/home/ubuntu/.docker/config.json` (600). Ni el PAT ni la llave SSH van al repo.
 - `Context.md`, `trader/`, `db/` y `.env` son locales; no commitearlos.
 
 ## Convenciones de código
