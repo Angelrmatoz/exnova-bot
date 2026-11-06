@@ -1,11 +1,8 @@
 # Exnova Bot
 
-Sistema autónomo de opciones binarias en **Exnova**. Ejecuta la estrategia **NORMAL 5m exhaustion** en una instancia **Oracle Cloud**, con Docker, imagen GHCR, SQLite y control estricto de riesgo. Cuenta **DEMO / PRACTICE**.
+Sistema autónomo de opciones binarias en **Exnova**. Ejecuta la estrategia **NORMAL 5m exhaustion** en un host Linux con Docker, imagen en GHCR, SQLite y control estricto de riesgo. Cuenta **DEMO / PRACTICE**.
 
-[![CI](https://github.com/Angelrmatoz/exnova-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/Angelrmatoz/exnova-bot/actions/workflows/ci.yml)
-[![Docker runner](https://github.com/Angelrmatoz/exnova-bot/actions/workflows/docker-runner.yml/badge.svg)](https://github.com/Angelrmatoz/exnova-bot/actions/workflows/docker-runner.yml)
-
-> **Estado de señal:** el edge **no está confirmado**. El backtest in-sample da 67,8 % en 230 señales, pero el forward real es **1W/0L**. Se opera solo en **DEMO**. No usar capital real hasta validar 30 operaciones resueltas y un tramo out-of-sample.
+> **Estado de señal:** el backtest in-sample es positivo, pero la muestra forward todavía es insuficiente. El edge **no está confirmado**. Se opera solo en **DEMO**; no usar capital real hasta completar la validación.
 
 > **Riesgo:** las opciones binarias son instrumentos de alto riesgo. Exnova no tiene regulación reconocida (CySEC, FCA, CNMV). El bróker se trata como una dependencia intercambiable; el núcleo analítico no depende de él.
 
@@ -15,12 +12,10 @@ Sistema autónomo de opciones binarias en **Exnova**. Ejecuta la estrategia **NO
 |---|---|
 | Estrategia | **NORMAL 5m exhaustion**, 30m, payout 0,86 |
 | Pares | `EURUSD-op`, `NZDUSD-op`, `EURGBP-op` |
-| Ventanas | 08:00–10:59 y 13:00–13:59 UTC (04:00–06:59 y 09:00–09:59 RD) |
-| Stake | 10.000 DEMO por orden; máx 3/sesión; corte 2W/2L |
-| Producción | Oracle Cloud Ubuntu, Docker 29.1.3, Compose 2.40.3 |
-| Imagen | `ghcr.io/angelrmatoz/exnova-bot-runner:latest` |
-| Timer | `exnova-runner.timer`, diario 07:55 UTC |
-| Tarea Windows | `ExnovaNormal0813` deshabilitada |
+| Ventanas | 08:00–10:59 y 13:00–13:59 UTC |
+| Riesgo | Stake fijo DEMO, máx 3/sesión, corte 2W/2L |
+| Producción | Host Linux + Docker + scheduler diario |
+| Imagen | GHCR (`exnova-bot-runner`) |
 | OTC | Suspendido: 0/11 con historia pasa el screener |
 | ML | Descartado: ~50 % accuracy, expectancy negativa |
 | Tests | 142 verdes en GitHub Actions |
@@ -53,8 +48,8 @@ GitHub Actions
   ├── tests (pytest)
   └── build/push imagen → GHCR
 
-Oracle Cloud
-  └── systemd timer 07:55 UTC
+Host Linux
+  └── scheduler diario
         └── docker compose run runner
               ├── pull :latest
               ├── ExnovaWSClient (WebSocket)
@@ -69,7 +64,6 @@ Oracle Cloud
 | Análisis | pandas + `ta` |
 | Persistencia | SQLite (`model_versions`, `trade_logs`) |
 | Ejecución | Docker + Docker Compose |
-| Producción | Oracle Cloud + systemd |
 | Distribución | GitHub Container Registry (GHCR) |
 | CI/CD | GitHub Actions |
 
@@ -81,41 +75,30 @@ Oracle Cloud
 | Expiración | 30m |
 | Payout de referencia | 0,86 |
 | Breakeven | 53,76 % |
-| Stake | 10.000 |
+| Stake | Fijo DEMO |
 | Máximo por sesión | 3 |
 | Corte | 2W o 2L |
 | Kill-switch | 30 resueltas con winrate <56 % |
 | Pares | EURUSD-op, NZDUSD-op, EURGBP-op |
 | Horas UTC | 8, 9, 10, 13 |
 
-El detalle de la selección y del análisis está en `Context.md` (handoff local, no versionado) y en [`AGENTS.md`](AGENTS.md) (reglas del repo y runbook).
-
 ## Producción
 
-La imagen se construye y publica desde GitHub Actions. Oracle no recibe pushes: **hace pull antes de cada sesión**.
+La imagen se construye y publica desde GitHub Actions. El host no recibe pushes: **hace pull antes de cada sesión**.
 
 ```bash
-# En Oracle
-cd /opt/exnova-bot
-sudo -H -u ubuntu -g docker docker compose -f compose.runner.yml pull
-sudo -H -u ubuntu -g docker docker compose -f compose.runner.yml run --rm -T runner --dry-run
+docker compose -f compose.runner.yml pull
+docker compose -f compose.runner.yml run --rm -T runner --dry-run
 ```
 
-El servicio `exnova-runner.service` ejecuta:
-
-```ini
-ExecStartPre=-/usr/bin/docker compose -f compose.runner.yml pull
-ExecStart=/usr/bin/docker compose -f compose.runner.yml run --rm -T runner
-```
-
-El timer dispara a las **07:55 UTC**. La tarea de Windows debe permanecer deshabilitada para no duplicar órdenes.
+Un scheduler diario arranca el runner antes de la ventana. El servicio hace `docker compose pull` y luego ejecuta el contenedor; si el `pull` falla, usa la imagen cacheada.
 
 ### Operación
 
 ```bash
-systemctl list-timers exnova-runner.timer
-systemctl is-active exnova-runner.service
-journalctl -u exnova-runner.service -n 100 --no-pager
+systemctl list-timers
+systemctl is-active docker
+journalctl -u <servicio> -n 100 --no-pager
 ```
 
 ## Desarrollo local
@@ -133,7 +116,7 @@ uv run python -m bot.scripts.asset_hours EURUSD-op NZDUSD-op EURGBP-op --hours 1
 ### Construir la imagen del runner
 
 ```bash
-docker build -f Dockerfile.runner -t ghcr.io/angelrmatoz/exnova-bot-runner:local .
+docker build -f Dockerfile.runner -t ghcr.io/<owner>/exnova-bot-runner:local .
 ```
 
 ## Estructura
@@ -151,8 +134,8 @@ bot/
 
 Dockerfile.runner              # imagen slim del runner (multi-stage, non-root)
 requirements-runner.txt        # dependencias mínimas del runner
-compose.runner.yml             # servicio Oracle: env, DB, logs
-deploy/                        # exnova-runner.service / .timer
+compose.runner.yml             # servicio: env, DB, logs
+deploy/                        # unidad de servicio y timer
 .github/workflows/             # CI + build/push GHCR
 data/5m/                       # 22 CSV de investigación (11 NORMAL + 11 OTC)
 bot_data.db                    # SQLite local (ignorado)
@@ -166,7 +149,7 @@ main.py                        # menú interactivo
 - OTC: 0/11 pasa el screener; mejor slot 55–57 %, insuficiente.
 - In-sample: 230 señales, 67,8 % win, DD 3,18 %, IC95 61,5–73,5 %.
 - Sep–nov: 63,4 % n41, IC95 48,1–76,4 % (cruza breakeven).
-- Forward: 1W/0L.
+- Forward: muestra todavía insuficiente.
 - `backtest-expert`: 60/100, `VALIDATION_REQUIRED`.
 
 No se cambian pares, horas, stake ni payout sin backtest, PR y validación forward. Un winrate de 30 días es ruido, no edge.
@@ -174,14 +157,14 @@ No se cambian pares, horas, stake ni payout sin backtest, PR y validación forwa
 ## Seguridad
 
 - `.env` y credenciales fuera de git.
-- La llave SSH y el PAT de GHCR (`read:packages`) viven fuera del repo.
-- El paquete GHCR puede ser privado; Oracle usa un PAT de solo lectura.
+- No se publican IPs, llaves SSH, rutas internas ni tokens.
+- El host usa un token de solo lectura para GHCR; el paquete puede ser privado.
 - Nunca ejecutar dos runners a la vez.
-- No commitear `Context.md`, `trader/`, `db/`, `.env` ni llaves.
+- No commitear archivos locales, `db/`, `.env` ni llaves.
 
 ## Roadmap
 
-1. Completar 30 operaciones resueltas en Oracle y revisar el forward.
+1. Completar 30 operaciones resueltas y revisar el forward.
 2. Añadir modo sombra para `GBPUSD-op`, `CADCHF-op` y otros FX antes de operarlos.
 3. Evaluar un filtro de eventos macro (NFP/CPI/FOMC).
 4. Endurecer `place_order` y `check_result` ante caídas de WebSocket.
