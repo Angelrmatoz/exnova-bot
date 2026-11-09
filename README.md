@@ -1,24 +1,26 @@
-# Exnova Bot
+# Binary Options Bot — IQ Option
 
-Sistema autónomo de opciones binarias en **Exnova**. Ejecuta la estrategia **NORMAL 5m exhaustion** en un host Linux con Docker, imagen en GHCR, SQLite y control estricto de riesgo. Cuenta **DEMO / PRACTICE**.
+Sistema autónomo de opciones binarias en **IQ Option** (el adaptador Exnova queda como fallback). Ejecuta la estrategia **NORMAL 5m exhaustion** en un host Linux con Docker, imagen en GHCR, SQLite y control estricto de riesgo. Cuenta **DEMO / PRACTICE**.
 
 > **Estado de señal:** el backtest in-sample es positivo, pero la muestra forward todavía es insuficiente. El edge **no está confirmado**. Se opera solo en **DEMO**; no usar capital real hasta completar la validación.
 
-> **Riesgo:** las opciones binarias son instrumentos de alto riesgo. Exnova no tiene regulación reconocida (CySEC, FCA, CNMV). El bróker se trata como una dependencia intercambiable; el núcleo analítico no depende de él.
+> **Riesgo:** las opciones binarias son instrumentos de alto riesgo. El bróker se trata como una dependencia intercambiable; el núcleo analítico no depende de él.
 
 ## Estado actual
 
 | Tema | Estado |
 |---|---|
-| Estrategia | **NORMAL 5m exhaustion**, 30m, payout 0,86 |
+| Bróker | **IQ Option DEMO** (Exnova como fallback) |
+| Estrategia | **NORMAL 5m exhaustion**, 30m |
 | Pares | `EURUSD-op`, `NZDUSD-op`, `EURGBP-op` |
 | Ventanas | 08:00–10:59 y 13:00–13:59 UTC |
-| Riesgo | Stake fijo DEMO, máx 3/sesión, corte 2W/2L |
-| Producción | Host Linux + Docker + scheduler diario |
-| Imagen | GHCR (`exnova-bot-runner`) |
+| Payout IQ | EURUSD 90%, NZDUSD 87%, EURGBP 87% (snapshot 09-nov) |
+| Riesgo | Stake **1.000 DEMO**, máx 3/sesión, corte 2W/2L |
+| Producción | Oracle Cloud + Docker + `systemd` timer 07:55 UTC |
+| Imagen | GHCR (`exnova-bot-runner`), ENTRYPOINT `--broker iqoption` |
 | OTC | Suspendido: 0/11 con historia pasa el screener |
 | ML | Descartado: ~50 % accuracy, expectancy negativa |
-| Tests | 142 verdes en GitHub Actions |
+| Tests | **152 verdes** en GitHub Actions |
 
 ## Qué hace
 
@@ -38,7 +40,6 @@ Sistema autónomo de opciones binarias en **Exnova**. Ejecuta la estrategia **NO
 - No usa Machine Learning en vivo; el modelo fue descartado.
 - No promete ganar ni predice el mercado.
 - No filtra noticias ni eventos macro (NFP, CPI, FOMC).
-- No comprueba el schedule antes de ordenar; si el par está cerrado, la orden se rechaza.
 - No usa las skills de trader en runtime; son herramientas de análisis externas.
 
 ## Arquitectura
@@ -48,11 +49,11 @@ GitHub Actions
   ├── tests (pytest)
   └── build/push imagen → GHCR
 
-Host Linux
-  └── scheduler diario
+Oracle Cloud
+  └── systemd timer 07:55 UTC
         └── docker compose run runner
               ├── pull :latest
-              ├── ExnovaWSClient (WebSocket)
+              ├── IqOptionWSClient (WebSocket, ssid)
               ├── estrategia 5m
               └── SQLite /app/db/bot_data.db
 ```
@@ -60,7 +61,8 @@ Host Linux
 | Componente | Tecnología |
 |---|---|
 | Lenguaje | Python 3.14 + uv |
-| Bróker | `BrokerClient` + `ExnovaAdapter` + `ExnovaWSClient` |
+| Bróker producción | `BrokerClient` + `IqOptionAdapter` + `IqOptionWSClient` |
+| Fallback | `ExnovaAdapter` + `ExnovaWSClient` |
 | Análisis | pandas + `ta` |
 | Persistencia | SQLite (`model_versions`, `trade_logs`) |
 | Ejecución | Docker + Docker Compose |
@@ -72,10 +74,10 @@ Host Linux
 | Parámetro | Valor |
 |---|---|
 | Timeframe | 5m |
-| Expiración | 30m |
-| Payout de referencia | 0,86 |
-| Breakeven | 53,76 % |
-| Stake | Fijo DEMO |
+| Expiración | 30m binaria (grilla 15m de IQ) |
+| Payout IQ | 0,87–0,90 |
+| `MIN_PAYOUT` | 0,86 |
+| Stake | **1.000** |
 | Máximo por sesión | 3 |
 | Corte | 2W o 2L |
 | Kill-switch | 30 resueltas con winrate <56 % |
@@ -88,10 +90,12 @@ La imagen se construye y publica desde GitHub Actions. El host no recibe pushes:
 
 ```bash
 docker compose -f compose.runner.yml pull
-docker compose -f compose.runner.yml run --rm -T runner --dry-run
+docker compose -f compose.runner.yml run --rm -T runner --stake 1000 --dry-run
 ```
 
-Un scheduler diario arranca el runner antes de la ventana. El servicio hace `docker compose pull` y luego ejecuta el contenedor; si el `pull` falla, usa la imagen cacheada.
+El ENTRYPOINT de la imagen ejecuta `normal_five --broker iqoption`; `compose.runner.yml` fija `--stake 1000`. El timer diario arranca el runner antes de la ventana. El servicio hace `docker compose pull` y luego ejecuta el contenedor; si el `pull` falla, usa la imagen cacheada.
+
+**IQ Option usa `ssid` de navegador.** Si caduca, el runner falla con `ssid inválido o sesión expirada`; hay que sacar la cookie nueva y actualizar `IQ_OPTION_SSID` en `/opt/exnova-bot/.env`.
 
 ### Operación
 
@@ -109,7 +113,7 @@ Requiere Python 3.14, [uv](https://docs.astral.sh/uv/) y Docker opcional.
 uv sync
 cp .env.example .env   # credenciales DEMO; nunca commitear
 uv run pytest tests
-uv run python -m bot.scripts.normal_five --dry-run
+uv run python -m bot.scripts.normal_five --broker iqoption --dry-run
 uv run python -m bot.scripts.asset_hours EURUSD-op NZDUSD-op EURGBP-op --hours 14
 ```
 
@@ -145,12 +149,11 @@ main.py                        # menú interactivo
 ## Datos y validación
 
 - 22 CSV 5m (11 `-op` + 11 `-OTC`) hasta 03-nov-2026.
-- El bróker expone 262 binarias; 190 activas; 85 son FX. Solo 22 tienen historia local.
+- IQ expone **273 binarias + 255 turbo**; Exnova **262 + 242**. Solo 22 activos tienen historia local.
 - OTC: 0/11 pasa el screener; mejor slot 55–57 %, insuficiente.
-- In-sample: 230 señales, 67,8 % win, DD 3,18 %, IC95 61,5–73,5 %.
-- Sep–nov: 63,4 % n41, IC95 48,1–76,4 % (cruza breakeven).
-- Forward: muestra todavía insuficiente.
-- `backtest-expert`: 60/100, `VALIDATION_REQUIRED`.
+- Replay IQ 30m: **222 señales, 65,6 % win, max DD 6,46 unidades, +51,77 unidades** con payouts 0,87–0,90.
+- Forward: muestra todavía insuficiente (3 NORMAL resueltas al 09-nov).
+- `backtest-expert`: `VALIDATION_REQUIRED`; no confundir backtest con edge confirmado.
 
 No se cambian pares, horas, stake ni payout sin backtest, PR y validación forward. Un winrate de 30 días es ruido, no edge.
 
