@@ -13,6 +13,35 @@ DEFAULT_UNDERLYING = [
 
 DEFAULT_COMMISSIONS = [{"active_id": 76, "value": 14}]
 
+DEFAULT_INIT = {
+    "turbo": {
+        "actives": {
+            "76": {
+                "id": 76, "name": "front.EURUSD-OTC", "enabled": True,
+                "is_suspended": False, "deadtime": 30,
+                "option": {
+                    "profit": {"commission": 14},
+                    "expiration_times": [60], "exp_time": 60,
+                    "start_time": int(time.time()) + 60, "count": 10,
+                },
+            }
+        }
+    },
+    "binary": {
+        "actives": {
+            "76": {
+                "id": 76, "name": "front.EURUSD-OTC", "enabled": True,
+                "is_suspended": False, "deadtime": 300,
+                "option": {
+                    "profit": {"commission": 10},
+                    "expiration_times": [900], "exp_time": 900,
+                    "start_time": int(time.time()) + 900, "count": 10,
+                },
+            }
+        }
+    },
+}
+
 DEFAULT_CANDLES = [
     {"from": t, "open": 1.1000, "max": 1.1100, "min": 1.0900, "close": 1.1050,
      "size": 300, "active_id": 76}
@@ -41,11 +70,12 @@ class MockIqOptionServer:
         self.commissions = DEFAULT_COMMISSIONS
         self.candles = DEFAULT_CANDLES
         self.balances = [{"id": 4, "type": 4, "amount": 10000.0, "user_id": 42}]
-        self.init_data = {}
+        self.init_data = DEFAULT_INIT
         self.positions = []
         self.subscriptions = []
         self.option_counter = [0]
         self.last_option_id = None
+        self.auth_ok = True
 
         self._threads.append(threading.Thread(target=self._accept_loop, daemon=True))
         self._threads[-1].start()
@@ -105,8 +135,9 @@ class MockIqOptionServer:
         name = msg.get("name")
         req_id = msg.get("request_id")
         if name == "authenticate":
-            conn.send_json({"name": "authenticated", "msg": True, "request_id": req_id})
-            conn.send_json({"name": "timeSync", "msg": int(time.time() * 1000), "request_id": req_id})
+            conn.send_json({"name": "authenticated", "msg": self.auth_ok, "request_id": req_id})
+            if self.auth_ok:
+                conn.send_json({"name": "timeSync", "msg": int(time.time() * 1000), "request_id": req_id})
         elif name == "sendMessage":
             self._handle_send_message(conn, msg, req_id)
         elif name == "subscribeMessage":

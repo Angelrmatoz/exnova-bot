@@ -17,6 +17,13 @@ def test_full_handshake(iq_ws_client):
     assert iq_ws_client.server_timestamp > 0
 
 
+def test_bad_ssid_returns_false(iq_ws_client, iq_mock_server):
+    iq_mock_server.auth_ok = False
+    ok, reason = iq_ws_client.connect()
+    assert ok is False
+    assert "ssid" in reason
+
+
 def test_get_available_assets(iq_ws_client):
     connect(iq_ws_client)
     assert iq_ws_client.get_available_assets() == ["EURUSD-OTC"]

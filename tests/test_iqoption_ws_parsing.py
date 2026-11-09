@@ -254,8 +254,93 @@ def test_get_available_assets_filters_suspended():
 def test_get_payout_commission():
     c = client_factory()
     c._actives = {"EURUSD-OTC": 76}
-    respond(c, "trading-params", {"commissions": [{"active_id": 76, "value": 14}]})
+    c._init_cache = {"turbo": {"actives": {"76": {
+        "option": {"profit": {"commission": 14}}
+    }}}}
+    c._init_cache_at = time.monotonic()
     assert c.get_payout("EURUSD-OTC") == pytest.approx(0.86)
+
+
+def test_authenticated_false_sets_flag():
+    c = client_factory()
+    feed(c, "authenticated", False)
+    assert c._authenticated is False
+    assert c._auth_event.is_set()
+
+
+def test_server_now_advances():
+    c = client_factory()
+    c.server_timestamp = 1000.0
+    c._ts_mono = time.monotonic() - 5
+    assert c.server_now() == pytest.approx(1005.0, abs=0.5)
+
+
+def test_equal_result_no_pnl():
+    c = client_factory()
+    feed(c, "position-changed", {"raw_event": {
+        "binary_options_option_changed1": {
+            "option_id": 10, "result": "equal", "amount": 1.0}}})
+    result, pnl = c.check_result("10", timeout=1)
+    assert result == "equal"
+    assert pnl == 0.0
+
+
+def _buy_fixture(duration, exp_time, start_time, deadtime, commission, kind):
+    c = client_factory()
+    c._actives = {"EURUSD-OTC": 76}
+    c.balance_id = 4
+    c.user_id = 42
+    c.server_timestamp = 1_700_000_000
+    c._ts_mono = time.monotonic()
+    c._init_cache = {
+        "turbo": {"actives": {}},
+        "binary": {"actives": {}},
+    }
+    c._init_cache[kind]["actives"]["76"] = {
+        "id": 76, "enabled": True, "is_suspended": False, "deadtime": deadtime,
+        "option": {
+            "profit": {"commission": commission},
+            "expiration_times": [exp_time], "exp_time": exp_time,
+            "start_time": start_time, "count": 10,
+        },
+    }
+    c._init_cache_at = time.monotonic()
+    sent = {}
+
+    def fake_send(name, msg, request_id=""):
+        if name == "sendMessage" and msg["name"] == "binary-options.open-option":
+            sent.update(msg["body"])
+            c._on_message(None, json.dumps({"name": "option", "msg": {"id": "op-1"}, "request_id": request_id}))
+            c._on_message(None, json.dumps({"name": "result", "msg": {"success": True}, "request_id": request_id}))
+
+    c._send = fake_send
+    return c, sent, duration
+
+
+def test_buy_uses_payout_and_expiration_grid():
+    c, sent, duration = _buy_fixture("1m", 60, 1_700_000_060, 30, 14, "turbo")
+    ok, order_id = c.buy("EURUSD-OTC", "call", 1.0, duration)
+    assert ok and order_id == "op-1"
+    assert sent["option_type_id"] == 3
+    assert sent["profit_percent"] == 86
+    assert sent["expired"] == 1_700_000_060
+
+
+def test_buy_uses_binary_for_15m():
+    c, sent, duration = _buy_fixture("15m", 900, 1_700_000_900, 300, 10, "binary")
+    ok, _ = c.buy("EURUSD-OTC", "put", 1.0, duration)
+    assert ok
+    assert sent["option_type_id"] == 1
+    assert sent["profit_percent"] == 90
+    assert sent["expired"] == 1_700_000_900
+
+
+def test_buy_rejects_unsupported_30m():
+    c, sent, duration = _buy_fixture("30m", 60, 1_700_000_060, 30, 14, "turbo")
+    ok, reason = c.buy("EURUSD-OTC", "call", 1.0, duration)
+    assert not ok
+    assert "30m" in reason
+    assert sent == {}
 
 
 def test_get_balances_timeout_raises():

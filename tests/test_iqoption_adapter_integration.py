@@ -1,5 +1,7 @@
 """Paridad: IqOptionAdapter (BrokerClient) sobre IqOptionWSClient contra el mock server."""
 
+import time
+
 import pytest
 
 
@@ -22,12 +24,24 @@ def test_adapter_get_available_assets(iq_adapter):
     assert iq_adapter.get_available_assets() == ["EURUSD-OTC"]
 
 
+def test_adapter_is_open_uses_schedule(iq_adapter, iq_mock_server):
+    _connect(iq_adapter)
+    now = int(time.time())
+    iq_mock_server.underlying = [{
+        "name": "EURUSD-OTC", "active_id": 76, "is_suspended": False,
+        "is_enabled": True,
+        "schedule": [{"open": now - 10, "close": now + 600}],
+    }]
+    assert iq_adapter.is_open("EURUSD-OTC") is True
+    assert iq_adapter.is_open("NOPE") is False
+
+
 def test_adapter_buy_and_result_loose(iq_adapter, iq_mock_server):
     _connect(iq_adapter)
     order_id = iq_adapter.place_order("EURUSD-OTC", "call", 1.0, "1m")
     assert order_id is not None and order_id.startswith("op-")
     iq_mock_server.push_position_changed(order_id, result="loose", amount=1.0)
-    win, pnl = iq_adapter.check_result(order_id)
+    win, pnl = iq_adapter.check_result(order_id, timeout=2)
     assert win == "loose"
     assert pnl == pytest.approx(-1.0)
 

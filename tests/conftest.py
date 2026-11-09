@@ -241,6 +241,6 @@ def iq_adapter(iq_mock_server, monkeypatch):
     from bot.broker.iqoption import IqOptionAdapter
 
     monkeypatch.setattr(iqoption_ws, "WSS_URL", iq_mock_server.url)
-    ad = IqOptionAdapter("test-ssid", account_type="PRACTICE")
+    ad = IqOptionAdapter("test-ssid", account_type="PRACTICE", market_type="OTC")
     yield ad
     ad.disconnect()
