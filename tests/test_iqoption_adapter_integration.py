@@ -59,7 +59,7 @@ def test_adapter_buy_rejects_on_error(iq_adapter, iq_mock_server):
 def test_adapter_balance_and_payout(iq_adapter):
     _connect(iq_adapter)
     assert iq_adapter.get_balance() == pytest.approx(10000.0)
-    assert iq_adapter.get_payout("EURUSD-OTC") == pytest.approx(0.86)
+    assert iq_adapter.get_payout("EURUSD-OTC") == pytest.approx(0.90)
 
 
 def test_adapter_check_connect(iq_adapter):

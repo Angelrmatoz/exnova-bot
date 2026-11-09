@@ -474,12 +474,13 @@ class IqOptionWSClient:
         )
 
     def get_payout(self, pair: str) -> float | None:
-        try:
-            payout = self._payout_for(pair, "turbo")
+        for kind in ("binary", "turbo"):
+            try:
+                payout = self._payout_for(pair, kind)
+            except Exception:
+                payout = None
             if payout is not None:
                 return payout
-        except Exception:
-            pass
         params = self.get_trading_params()
         commissions = {
             c["active_id"]: c["value"]
@@ -540,44 +541,46 @@ class IqOptionWSClient:
         start = int(opt.get("start_time") or 0)
         step = int(opt.get("exp_time") or 0) or seconds
         count = int(opt.get("count") or 0)
-        if start > 0 and step > 0:
+        if start > 0 and step > 0 and count > 0:
             earliest = now + float(active.get("deadtime") or 0)
-            if earliest <= start:
-                exp = start
-            else:
-                exp = start + ((int(earliest - start) + step - 1) // step) * step
-            if count and exp > start + (count - 1) * step:
+            candidates = [
+                start + k * step for k in range(count)
+                if start + k * step >= earliest
+            ]
+            if not candidates:
                 return None
-            return int(exp)
+            target = now + seconds
+            best = min(candidates, key=lambda e: abs(e - target))
+            if abs(best - target) > step + float(active.get("deadtime") or 0):
+                return None
+            return int(best)
         return int(get_expiration_time(int(now), seconds))
 
     def resolve_expiration(self, pair: str, duration: str) -> tuple[int, int, str]:
         """Elige tipo de opción y vencimiento válido para `duration`.
 
-        IQ publica `option.expiration_times` por activo; 30m no existe en los
-        pares FX (solo 60s turbo y 900s binario), así que se rechaza en vez de
-        mandar un vencimiento inventado.
+        `expiration_times` es la grilla (1m turbo, 15m binaria), no la lista de
+        duraciones. Igual que Exnova: <=5m usa turbo; >5m usa binaria, y se
+        elige el vencimiento de la grilla más cercano a `now + duration`.
         """
         seconds = self._to_seconds(duration)
         now = self.server_now()
+        preferred = (("turbo", _TURBO_OPTION_TYPE_ID), ("binary", 1))
+        if seconds > 5 * 60:
+            preferred = (("binary", 1), ("turbo", _TURBO_OPTION_TYPE_ID))
         supported = {}
-        for kind, type_id in (("turbo", _TURBO_OPTION_TYPE_ID), ("binary", 1)):
+        for kind, type_id in preferred:
             active = self._active_config(pair, kind)
             if not active or active.get("is_suspended") or not active.get("enabled", True):
                 continue
             opt = active.get("option") or {}
-            times = opt.get("expiration_times") or []
-            if seconds not in times:
-                supported[kind] = times
-                continue
             exp = self._next_expiration(active, seconds, now)
             if exp is None:
-                supported[kind] = times
+                supported[kind] = opt.get("expiration_times")
                 continue
             return type_id, exp, kind
         raise ValueError(
-            f"{pair}: expiración {duration} no disponible "
-            f"(turbo={supported.get('turbo')}, binary={supported.get('binary')})"
+            f"{pair}: expiración {duration} no disponible en la grilla de IQ"
         )
 
     def get_positions(self, timeout: int = 10) -> list[dict]:

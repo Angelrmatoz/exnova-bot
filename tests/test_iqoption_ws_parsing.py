@@ -335,6 +335,15 @@ def test_buy_uses_binary_for_15m():
     assert sent["expired"] == 1_700_000_900
 
 
+def test_buy_uses_binary_for_30m():
+    c, sent, duration = _buy_fixture("30m", 900, 1_700_000_900, 300, 10, "binary")
+    ok, _ = c.buy("EURUSD-OTC", "call", 1.0, duration)
+    assert ok
+    assert sent["option_type_id"] == 1
+    assert sent["profit_percent"] == 90
+    assert sent["expired"] == 1_700_001_800
+
+
 def test_buy_rejects_unsupported_30m():
     c, sent, duration = _buy_fixture("30m", 60, 1_700_000_060, 30, 14, "turbo")
     ok, reason = c.buy("EURUSD-OTC", "call", 1.0, duration)

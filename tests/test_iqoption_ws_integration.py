@@ -73,7 +73,7 @@ def test_get_balance(iq_ws_client):
 
 def test_get_payout(iq_ws_client):
     connect(iq_ws_client)
-    assert iq_ws_client.get_payout("EURUSD-OTC") == pytest.approx(0.86)
+    assert iq_ws_client.get_payout("EURUSD-OTC") == pytest.approx(0.90)
 
 
 def test_subscribe_sends_first_candles_and_subscription(iq_ws_client, iq_mock_server):
