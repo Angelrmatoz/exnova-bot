@@ -4,13 +4,13 @@ Guía para agentes de IA y colaboradores que trabajan en este repositorio.
 
 ## Proyecto
 
-Bot autónomo de opciones binarias en Exnova, en Python. Proyecto de operación seria — la señal debe demostrar edge antes de operar capital real. Proyecto completo y decisiones de arquitectura en **`plan.md`** (fuente única de verdad; léelo antes de hacer cambios de alcance).
+Bot autónomo de opciones binarias en **IQ Option**, en Python (el adaptador Exnova queda como fallback). Proyecto de operación seria — la señal debe demostrar edge antes de operar capital real. Proyecto completo y decisiones de arquitectura en **`plan.md`** (fuente única de verdad; léelo antes de hacer cambios de alcance).
 
 - Fase 1 (entorno, menú, BrokerClient/ExnovaAdapter) **completa**.
 - Fase 2 (Machine Learning) **completa**: entrenamiento walk-forward, calibración, SHAP, export `.pkl`. Historial ✅, features ✅.
-- Fase 3.6 (segundo bróker) **completa**: IQ Option con `IqOptionAdapter` + `IqOptionWSClient` (misma familia Quadcode, auth por ssid de navegador). Validado end-to-end en DEMO real. El bróker no aporta precisión al modelo — solo transporte de datos y ejecución.
-- **Estado de señal (importante):** el backtest ML con 5m + features técnicos da ~50% accuracy y **expectancy negativa** (−0.08 a −0.17 con payout 80%). **ML descartado.** La única línea activa es **NORMAL 5m exhaustion** (ver `Context.md` §2): 3 pares `EURUSD-op, NZDUSD-op, EURGBP-op`, expiración **30m**, ventana operable **08:00–10:59 + 13:00–13:59 UTC**, payout 0,86 (breakeven 53,76 %). **OTC suspendido**: en días operables da ~53,6 % a 15m = breakeven; el 67–100 % viejo incluía días con el activo cerrado y no era operable.
-- **Producción (06-nov):** el runner corre en **Oracle Cloud**, no en la laptop. Imagen `ghcr.io/angelrmatoz/exnova-bot-runner:latest` (Docker/GHCR), `systemd` timer `exnova-runner.timer` a las **07:55 UTC**. La tarea Windows `ExnovaNormal0813` está **deshabilitada** para evitar órdenes duplicadas. Detalle en `Context.md` §1 y §5.
+- Fase 3.6 (segundo bróker) **completa**: IQ Option con `IqOptionAdapter` + `IqOptionWSClient` (misma familia Quadcode, auth por ssid de navegador). Validado end-to-end en DEMO real: 1m turbo, 15m y 30m binaria. El bróker no aporta precisión al modelo — solo transporte de datos y ejecución.
+- **Estado de señal (importante):** el backtest ML con 5m + features técnicos da ~50% accuracy y **expectancy negativa** (−0.08 a −0.17 con payout 80%). **ML descartado.** La única línea activa es **NORMAL 5m exhaustion** (ver `Context.md` §2): 3 pares `EURUSD-op, NZDUSD-op, EURGBP-op`, expiración **30m**, ventana operable **08:00–10:59 + 13:00–13:59 UTC**, payout IQ actual **0,87–0,90** con `MIN_PAYOUT=0.86`. **OTC suspendido**: en días operables da ~53,6 % a 15m = breakeven; el 67–100 % viejo incluía días con el activo cerrado y no era operable.
+- **Producción (09-nov):** el runner corre en **Oracle Cloud**, no en la laptop. Imagen `ghcr.io/angelrmatoz/exnova-bot-runner:latest` (Docker/GHCR) con ENTRYPOINT `normal_five --broker iqoption`; `systemd` timer `exnova-runner.timer` a las **07:55 UTC**. `compose.runner.yml` fija `--stake 1000`. La tarea Windows `ExnovaNormal0813` está **deshabilitada** para evitar órdenes duplicadas. IQ usa `ssid` de navegador: **caduca** y hay que refrescarlo en Oracle. Detalle en `Context.md` §1 y §15.
 
 ## Entorno
 
@@ -20,7 +20,7 @@ Bot autónomo de opciones binarias en Exnova, en Python. Proyecto de operación 
 - **Producción:** Oracle Cloud Ubuntu, Docker 29.1.3 + Compose 2.40.3, 1 GB RAM + 2 GB swap, 48 GB disco. Runner en `/opt/exnova-bot`; host y llave SSH fuera del repo.
 - `plan.md` usa LF. Respeta el estilo de archivo existente.
 - Clave del layout de imports: corre siempre desde la raíz del repo (`uv run python -m ...`), nunca desde `bot/`.
-- Tests: `uv run pytest tests` (142 tests verdes; `pythonpath=["."]` ya configurado en pyproject.toml).
+- Tests: `uv run pytest tests` (152 tests verdes; `pythonpath=["."]` ya configurado en pyproject.toml).
 - Cuenta DEMO / PRACTICE. Zona operador UTC−4 (RD), bróker habla UTC. Estado vivo del proyecto en **`Context.md`** (handoff entre sesiones; actualizarlo al cerrar el día).
 
 ## Comandos
@@ -46,8 +46,9 @@ uv run python -m bot.scripts.backtest_mock --pairs data/5m/EURUSD.csv --payouts 
 # Dashboard (Fase 6)
 uv run streamlit run bot/scripts/dashboard.py   # panel sobre bot_data.db: PnL acumulado, win rate por par, calibración, drawdown
 
-# Sesión NORMAL activa (exhaustion 5m, 30m, 10k, máx 3/sesión)
-uv run python -m bot.scripts.normal_five --dry-run   # no opera: chequea conexión, balance y señal
+# Sesión NORMAL activa en IQ (exhaustion 5m, 30m, 1k, máx 3/sesión)
+uv run python -m bot.scripts.normal_five --broker iqoption --dry-run   # no opera: chequea conexión, balance y señal
+uv run python -m bot.scripts.normal_five --broker exnova --dry-run     # fallback Exnova
 uv run python -m bot.scripts.asset_hours EURUSD-op NZDUSD-op EURGBP-op --hours 14  # schedule en vivo
 uv run python -m bot.scripts.anchor_scan --fx        # horarios OTC (referencia; OTC suspendido)
 
@@ -65,7 +66,7 @@ Verificar imports tras mover archivos: `uv run python -c "from <modulo> import .
 - `IqOptionAdapter.place_order` es el único que debe llamar `IqOptionWSClient.buy()`: `buy` devuelve tupla `(ok, order_id)`. No usar `buy()` directo como order_id (el id va dentro de la tupla).
 - La lógica pura (features, history, ML) no importa el bróker; recibe datos vía parámetros/callables.
 - `main.py` corre `run_session` en bucle: tras cada sesión (`choose_after_session`) elige esperar 1h (`time.sleep(3600)`), re-analizar ya (espera vela nueva dentro de `run_session`) o salir.
-- Runner activo `bot/scripts/normal_five.py`: `PAIRS=(EURUSD-op,NZDUSD-op,EURGBP-op)`, `HOURS={8,9,10,13}`, stake 10.000, expiración `30m`, `check_result(timeout=2400)`. Kill-switch: 30 resueltas, parar si win < 56 %. **Producción:** `exnova-runner.timer` en Oracle a las 07:55 UTC; `ExecStartPre` hace `docker compose pull` de `:latest`. La tarea Windows `ExnovaNormal0813` está deshabilitada.
+- Runner activo `bot/scripts/normal_five.py`: `PAIRS=(EURUSD-op,NZDUSD-op,EURGBP-op)`, `HOURS={8,9,10,13}`, stake 1.000, expiración `30m`, `check_result(timeout=2400)`. Kill-switch: 30 resueltas, parar si win < 56 %. **Producción:** `exnova-runner.timer` en Oracle a las 07:55 UTC; `ExecStartPre` hace `docker compose pull` de `:latest`. El ENTRYPOINT de la imagen usa `--broker iqoption`; `compose.runner.yml` fija `--stake 1000`. La tarea Windows `ExnovaNormal0813` está deshabilitada. **IQ depende de `IQ_OPTION_SSID`; si caduca, el runner falla con `ssid inválido o sesión expirada`.**
 - Imagen: `Dockerfile.runner` (multi-stage, non-root, solo deps del runner), `requirements-runner.txt`, `compose.runner.yml`; GHCR `ghcr.io/angelrmatoz/exnova-bot-runner`. El workflow `docker-runner.yml` corre tests y publica `:dev`/`:latest` con actions Node 24.
 - **Nunca dos runners:** si Oracle está activo, Windows debe estar deshabilitado. Dos runners duplican órdenes.
 - Exhaustion sobre vela 5m cerrada: rango ≥2×ATR14, cuerpo ≥60 %, cierre fuera Bollinger(20,2), excluye velas con RSI extremo. Entrada al open siguiente.
@@ -75,15 +76,15 @@ Verificar imports tras mover archivos: `uv run python -c "from <modulo> import .
 
 ## Operación Oracle y despliegue
 
-- **Timer:** `exnova-runner.timer` dispara `exnova-runner.service` a las **07:55 UTC**. El servicio hace `docker compose pull` de `:latest` y luego `docker compose run --rm -T runner`.
+- **Timer:** `exnova-runner.timer` dispara `exnova-runner.service` a las **07:55 UTC**. El servicio hace `docker compose pull` de `:latest` y luego `docker compose run --rm -T runner`; el ENTRYPOINT de la imagen ya pasa `--broker iqoption` y compose fija `--stake 1000`.
 - **Pre-sesión (03:45 RD):** `systemctl list-timers exnova-runner.timer`, `systemctl is-active exnova-runner.service`, `docker compose ps`, `free -h`, `df -h`, `asset_hours.py` de los 3 pares, payout y evento macro del día.
 - **Post-sesión:** `journalctl -u exnova-runner.service --since today`, revisar `trade_logs` de `NORMAL`, PnL y winrate. No cambiar la estrategia por una racha.
 - **Pull manual:** `cd /opt/exnova-bot && sudo -H -u ubuntu -g docker docker compose -f compose.runner.yml pull`.
 - **Rollback:** fijar en `compose.runner.yml` el tag `sha-<commit>` anterior, `pull`, `run --dry-run` y dejar el timer. No reactivar Windows sin desactivar antes el timer.
-- **Incidentes:** WS caído → revisar el reintento de velas; `pull` falla → usa la imagen cacheada; timer perdido → `systemctl start exnova-runner.service` solo si la ventana sigue abierta; DB → backup antes de tocar.
+- **Incidentes:** WS caído → revisar el reintento de velas; `pull` falla → usa la imagen cacheada; timer perdido → `systemctl start exnova-runner.service` solo si la ventana sigue abierta; DB → backup antes de tocar. **IQ ssid vencido** → `connect` devuelve `ssid inválido o sesión expirada`; sacar cookie nueva del navegador y actualizar `IQ_OPTION_SSID` en `/opt/exnova-bot/.env`.
 - **Nunca dos runners:** Oracle activo ⇒ Windows `ExnovaNormal0813` deshabilitado.
 - **Despliegue:** commit en `dev` → CI → PR `dev`→`main` → merge → `:latest` → Oracle hace `pull` en la siguiente sesión. No cambiar `PAIRS`, `HOURS`, `MIN_PAYOUT`, stake ni máx 3 sin backtest + PR.
-- **Payout:** `MIN_PAYOUT=0.86` no es decorativo: payout 0,86 ⇒ breakeven 53,76 %. Bajarlo sin backtest cambia la expectancy. No quitar el filtro por preferencia.
+- **Payout:** `MIN_PAYOUT=0.86` no es decorativo: payout 0,86 ⇒ breakeven 53,76 %. IQ paga 0,87–0,90 en los 3 pares, pero el filtro se mantiene. Bajarlo sin backtest cambia la expectancy. No quitar el filtro por preferencia.
 - **Handoff:** `Context.md` es local/untracked; `AGENTS.md` sí se commitea. No commitear `.env`, `db/`, `trader/` ni llaves.
 
 ## Estructura
@@ -121,7 +122,7 @@ bot_data.db       # SQLite (model_versions; trade_logs)
 
 ## Datos y ML
 
-- Universo binario del bróker: **262 activos** (190 habilitados; 85 FX, 15 índices, 13 commodities, 1 crypto, 148 stocks/other). Solo 22 tienen CSV 5m local; el resto solo se puede revisar en vivo. El bot opera 3 pares FX.
+- Universo binario: IQ **273 binarias + 255 turbo**; Exnova **262 + 242**. Solo 22 tienen CSV 5m local; el resto solo se revisa en vivo. El bot opera 3 pares FX NORMAL.
 - Features: `build_features()` (bot/ml/features.py) → 16 columnas (`FEATURE_COLUMNS`). Las ~49 primeras filas tienen NaN de warm-up (EMA50/ATR14) — aplicar `dropna()` en entrenamiento.
 - Features MTLF: `multi_tf.py` resamplea 5m→15m/1h con `merge_asof` **solo velas superiores cerradas** (anti-leakage). `MTL_COLUMNS` = `FEATURE_COLUMNS` + 8 de tendencia.
 - `train.feature_columns(df)` detecta las columnas presentes (base o MTLF) — no hardcodear.
