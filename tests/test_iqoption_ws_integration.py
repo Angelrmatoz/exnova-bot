@@ -17,6 +17,13 @@ def test_full_handshake(iq_ws_client):
     assert iq_ws_client.server_timestamp > 0
 
 
+def test_bad_ssid_returns_false(iq_ws_client, iq_mock_server):
+    iq_mock_server.auth_ok = False
+    ok, reason = iq_ws_client.connect()
+    assert ok is False
+    assert "ssid" in reason
+
+
 def test_get_available_assets(iq_ws_client):
     connect(iq_ws_client)
     assert iq_ws_client.get_available_assets() == ["EURUSD-OTC"]
@@ -66,7 +73,7 @@ def test_get_balance(iq_ws_client):
 
 def test_get_payout(iq_ws_client):
     connect(iq_ws_client)
-    assert iq_ws_client.get_payout("EURUSD-OTC") == pytest.approx(0.86)
+    assert iq_ws_client.get_payout("EURUSD-OTC") == pytest.approx(0.90)
 
 
 def test_subscribe_sends_first_candles_and_subscription(iq_ws_client, iq_mock_server):

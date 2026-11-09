@@ -51,13 +51,21 @@ class IqOptionWSClient:
         self.balance_id = None
         self.user_id = None
         self.server_timestamp = None
+        self._ts_mono = None
+        self._connect_error = None
+        self._authenticated = None
         self._actives = {}
+        self._underlyings = {}
+        self._actives_loaded = False
+        self._init_cache = None
+        self._init_cache_at = 0.0
 
         self._app = None
         self._ws_thread = None
         self._stop = threading.Event()
         self._send_lock = threading.Lock()
         self._connected = threading.Event()
+        self._connect_failed = threading.Event()
         self._auth_event = threading.Event()
         self._ts_event = threading.Event()
         self._candles_event = threading.Event()
@@ -88,17 +96,32 @@ class IqOptionWSClient:
         """Arranca el WS y autentica con el ssid."""
         if not self._stop.is_set():
             self.close()
-        self._start()
+        self._connect_error = None
+        try:
+            self._start()
+        except TimeoutError as e:
+            self.close()
+            return False, str(e)
+        if self._connect_error:
+            self.close()
+            return False, self._connect_error
         return True, None
 
     # ------------------------------------------------------------ WS lifecycle
 
     def _start(self):
         self._stop.clear()
+        self._authenticated = None
+        self._connect_failed.clear()
         self._ws_thread = threading.Thread(target=self._ws_loop, daemon=True)
         self._ws_thread.start()
-        if not self._connected.wait(25):
-            raise TimeoutError("no se pudo conectar al websocket de IQ Option")
+        deadline = time.monotonic() + 25
+        while time.monotonic() < deadline:
+            if self._connected.wait(0.1):
+                return
+            if self._connect_failed.is_set():
+                break
+        raise TimeoutError(self._connect_error or "no se pudo conectar al websocket de IQ Option")
 
     def _ws_loop(self):
         while not self._stop.is_set():
@@ -125,7 +148,7 @@ class IqOptionWSClient:
             if self._stop.is_set():
                 break
             logger.warning("ws desconectado, reconexión en %.1fs", backoff)
-            time.sleep(backoff)
+            self._stop.wait(backoff)
             self._reconnect_backoff = min(self._reconnect_backoff * 2, self._max_backoff)
 
     def _on_open(self, wss):
@@ -136,14 +159,27 @@ class IqOptionWSClient:
         })
         threading.Thread(target=self._handshake, args=(wss,), daemon=True).start()
 
+    def _fail(self, reason, wss=None):
+        self._connect_error = reason
+        self._connect_failed.set()
+        if wss is not None:
+            try:
+                wss.close()
+            except Exception:
+                pass
+
     def _handshake(self, wss):
         if not self._auth_event.wait(10):
             logger.error("timeout esperando authenticated")
-            wss.close()
+            self._fail("timeout esperando authenticated", wss)
+            return
+        if not self._authenticated:
+            logger.error("ssid inválido o sesión expirada")
+            self._fail("ssid inválido o sesión expirada", wss)
             return
         if not self._ts_event.wait(10):
             logger.error("timeout esperando timeSync")
-            wss.close()
+            self._fail("timeout esperando timeSync", wss)
             return
         self._send("setOptions", {"sendResults": True}, request_id="1")
         try:
@@ -156,11 +192,11 @@ class IqOptionWSClient:
                     break
         except TimeoutError:
             logger.error("no se obtuvieron balances en handshake")
-            wss.close()
+            self._fail("no se obtuvieron balances", wss)
             return
         if self.balance_id is None:
             logger.error("sin balance de tipo %s", self.account_type)
-            wss.close()
+            self._fail(f"sin balance de tipo {self.account_type}", wss)
             return
         try:
             self.get_initialization_data()
@@ -194,6 +230,14 @@ class IqOptionWSClient:
     def check_connect(self) -> bool:
         return self._connected.is_set()
 
+    def server_now(self) -> float:
+        """Hora estimada del servidor, corregida por el offset de timeSync."""
+        if self.server_timestamp is None:
+            return time.time()
+        if self._ts_mono is None:
+            return self.server_timestamp
+        return self.server_timestamp + (time.monotonic() - self._ts_mono)
+
     # --------------------------------------------------------------- sending
 
     def _send_raw(self, data):
@@ -217,9 +261,14 @@ class IqOptionWSClient:
         name = msg.get("name")
         data = msg.get("msg")
         if name == "authenticated":
+            self._authenticated = bool(data)
+            if not self._authenticated:
+                self._connect_error = "ssid inválido o sesión expirada"
+                self._connect_failed.set()
             self._auth_event.set()
         elif name == "timeSync":
             self.server_timestamp = data / 1000
+            self._ts_mono = time.monotonic()
             self._ts_event.set()
         elif name == "candles":
             self._candles_data = data.get("candles", [])
@@ -267,12 +316,10 @@ class IqOptionWSClient:
         if option_id is None:
             return
         result = option.get("result")
-        if result in ("win", "lose", "loose", "tie"):
+        if result in ("win", "lose", "loose", "tie", "equal"):
             self._closed[str(option_id)] = option
 
     def get_realtime_candle(self, pair: str, size: int) -> dict | None:
-        active_id = self._active_id(pair)
-        return self._realtime_candles.get((active_id, size))
         active_id = self._active_id(pair)
         return self._realtime_candles.get((active_id, size))
 
@@ -290,7 +337,7 @@ class IqOptionWSClient:
         return max(1, round(seconds / 60))
 
     def _active_id(self, pair: str) -> int:
-        if not self._actives:
+        if not self._actives and not self._actives_loaded:
             self._load_actives()
         if pair in self._actives:
             return self._actives[pair]
@@ -303,7 +350,7 @@ class IqOptionWSClient:
     def get_candles(self, pair: str, timeframe: str, count: int, endtime: int | None = None) -> list[dict]:
         interval = self._to_seconds(timeframe)
         if endtime is None:
-            endtime = int(self.server_timestamp or time.time())
+            endtime = int(self.server_now())
         active_id = self._active_id(pair)
         self._candles_data = None
         self._candles_event.clear()
@@ -386,8 +433,25 @@ class IqOptionWSClient:
             data = []
         for item in data:
             name = item.get("name")
-            if name and not item.get("is_suspended"):
-                self._actives[name] = int(item["active_id"])
+            if not name:
+                continue
+            self._underlyings[name] = item
+            active_id = item.get("active_id")
+            if active_id is not None:
+                self._actives[name] = int(active_id)
+        self._actives_loaded = True
+
+    def get_schedule(self, pair: str) -> list | None:
+        """Ventanas [open, close] del activo desde underlying-list."""
+        self._active_id(pair)
+        item = self._underlyings.get(pair)
+        if item is not None:
+            return item.get("schedule")
+        bare = pair.replace(".", "").upper()
+        for name, data in self._underlyings.items():
+            if name.replace(".", "").upper() == bare:
+                return data.get("schedule")
+        return None
 
     def get_underlying_list(self, timeout: int = 15) -> list[dict]:
         self._underlying_data = None
@@ -402,10 +466,21 @@ class IqOptionWSClient:
         return list(self._underlying_data or [])
 
     def get_available_assets(self) -> list[str]:
-        data = self.get_underlying_list()
-        return sorted(i["name"] for i in data if not i.get("is_suspended"))
+        if not self._actives and not self._actives_loaded:
+            self._load_actives()
+        return sorted(
+            name for name, item in self._underlyings.items()
+            if not item.get("is_suspended") and item.get("is_enabled", True)
+        )
 
     def get_payout(self, pair: str) -> float | None:
+        for kind in ("binary", "turbo"):
+            try:
+                payout = self._payout_for(pair, kind)
+            except Exception:
+                payout = None
+            if payout is not None:
+                return payout
         params = self.get_trading_params()
         commissions = {
             c["active_id"]: c["value"]
@@ -437,6 +512,77 @@ class IqOptionWSClient:
             raise TimeoutError("timeout esperando initialization-data")
         return dict(self._init_data or {})
 
+    def _initialization(self) -> dict:
+        if self._init_cache is None and self._init_data:
+            self._init_cache = self._init_data
+            self._init_cache_at = time.monotonic()
+        if self._init_cache is None or time.monotonic() - self._init_cache_at > 30:
+            self._init_cache = self.get_initialization_data()
+            self._init_cache_at = time.monotonic()
+        return self._init_cache
+
+    def _active_config(self, pair: str, kind: str) -> dict | None:
+        active_id = self._active_id(pair)
+        actives = (self._initialization().get(kind) or {}).get("actives") or {}
+        return actives.get(str(active_id))
+
+    def _payout_for(self, pair: str, kind: str) -> float | None:
+        active = self._active_config(pair, kind)
+        if not active:
+            return None
+        commission = (((active.get("option") or {}).get("profit") or {}).get("commission"))
+        if commission is None:
+            return None
+        return (100.0 - commission) / 100.0
+
+    @staticmethod
+    def _next_expiration(active: dict, seconds: int, now: float) -> int | None:
+        opt = active.get("option") or {}
+        start = int(opt.get("start_time") or 0)
+        step = int(opt.get("exp_time") or 0) or seconds
+        count = int(opt.get("count") or 0)
+        if start > 0 and step > 0 and count > 0:
+            earliest = now + float(active.get("deadtime") or 0)
+            candidates = [
+                start + k * step for k in range(count)
+                if start + k * step >= earliest
+            ]
+            if not candidates:
+                return None
+            target = now + seconds
+            best = min(candidates, key=lambda e: abs(e - target))
+            if abs(best - target) > step + float(active.get("deadtime") or 0):
+                return None
+            return int(best)
+        return int(get_expiration_time(int(now), seconds))
+
+    def resolve_expiration(self, pair: str, duration: str) -> tuple[int, int, str]:
+        """Elige tipo de opción y vencimiento válido para `duration`.
+
+        `expiration_times` es la grilla (1m turbo, 15m binaria), no la lista de
+        duraciones. Igual que Exnova: <=5m usa turbo; >5m usa binaria, y se
+        elige el vencimiento de la grilla más cercano a `now + duration`.
+        """
+        seconds = self._to_seconds(duration)
+        now = self.server_now()
+        preferred = (("turbo", _TURBO_OPTION_TYPE_ID), ("binary", 1))
+        if seconds > 5 * 60:
+            preferred = (("binary", 1), ("turbo", _TURBO_OPTION_TYPE_ID))
+        supported = {}
+        for kind, type_id in preferred:
+            active = self._active_config(pair, kind)
+            if not active or active.get("is_suspended") or not active.get("enabled", True):
+                continue
+            opt = active.get("option") or {}
+            exp = self._next_expiration(active, seconds, now)
+            if exp is None:
+                supported[kind] = opt.get("expiration_times")
+                continue
+            return type_id, exp, kind
+        raise ValueError(
+            f"{pair}: expiración {duration} no disponible en la grilla de IQ"
+        )
+
     def get_positions(self, timeout: int = 10) -> list[dict]:
         self._positions_data = None
         self._positions_event.clear()
@@ -454,7 +600,9 @@ class IqOptionWSClient:
         if not self._positions_event.wait(timeout):
             raise TimeoutError("timeout esperando history-positions")
         out = []
-        for item in (self._positions_data or {}).get("positions", []):
+        data = self._positions_data or {}
+        items = data.get("positions", []) if isinstance(data, dict) else data
+        for item in items:
             option = item.get("raw_event", {}).get("binary_options_option_changed1", {})
             if option:
                 out.append(option)
@@ -463,18 +611,30 @@ class IqOptionWSClient:
     # --------------------------------------------------------------- trading
 
     def buy(self, pair: str, side: str, amount: float, duration: str) -> tuple[bool, str | None]:
+        if side.lower() not in ("call", "put"):
+            return False, f"dirección inválida: {side}"
+        try:
+            option_type_id, exp, kind = self.resolve_expiration(pair, duration)
+        except (ValueError, TimeoutError) as e:
+            logger.warning("orden rechazada: %s", e)
+            return False, str(e)
+        try:
+            payout = self._payout_for(pair, kind)
+        except Exception as e:
+            logger.warning("payout no disponible para %s: %s", pair, e)
+            return False, f"payout no disponible: {e}"
+        if payout is None:
+            return False, f"payout no disponible para {pair}"
         req_id = str(random.randint(0, 10000))
-        interval = self._to_seconds(duration)
-        exp = get_expiration_time(int(self.server_timestamp), interval)
         self._subscribe_positions()
         body = {
-            "option_type_id": _TURBO_OPTION_TYPE_ID,
+            "option_type_id": option_type_id,
             "active_id": self._active_id(pair),
             "user_balance_id": int(self.balance_id),
             "price": float(amount),
-            "profit_percent": 87,
             "direction": side.lower(),
             "expired": int(exp),
+            "profit_percent": round(payout * 100),
         }
         self._buy_result = None
         self._buy_option = {}
@@ -501,7 +661,7 @@ class IqOptionWSClient:
             if x is not None:
                 result = x["result"]
                 pnl = (
-                    0.0 if result == "tie" else
+                    0.0 if result in ("tie", "equal") else
                     float(x["amount"]) * -1 if result in ("lose", "loose") else
                     float(x["profit_amount"])
                 )

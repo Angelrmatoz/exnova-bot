@@ -14,6 +14,8 @@ def windows(schedule: list | None) -> list[Window]:
     """Normaliza el schedule a una lista de (inicio, fin) ordenada."""
     out = []
     for item in schedule or []:
+        if isinstance(item, dict):
+            item = (item.get("open"), item.get("close"))
         if isinstance(item, (list, tuple)) and len(item) >= 2:
             out.append((int(item[0]), int(item[1])))
     return sorted(out)

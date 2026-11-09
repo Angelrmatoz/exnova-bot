@@ -80,6 +80,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--stake", type=float, default=10000.0)
+    ap.add_argument("--broker", default="exnova", choices=("exnova", "iqoption"))
     args = ap.parse_args()
 
     rate, resolved = get_win_rate(MARKET)
@@ -87,7 +88,7 @@ def main() -> int:
         print(f"Kill-switch: win rate {rate:.1%} en {resolved} operaciones. No se opera.")
         return 1
 
-    broker = build_broker("exnova", "NORMAL", "PRACTICE")
+    broker = build_broker(args.broker, "NORMAL", "PRACTICE")
     ok, reason = broker.connect()
     print("connect:", ok, reason, flush=True)
     if not ok:

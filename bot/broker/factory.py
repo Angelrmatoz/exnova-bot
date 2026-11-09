@@ -23,5 +23,5 @@ def build_broker(name: str, market_type: str = "NORMAL", account_type: str | Non
     if name == "iqoption":
         c = iqoption_credentials()
         at = account_type or c["account_type"]
-        return IqOptionAdapter(c["ssid"], at)
+        return IqOptionAdapter(c["ssid"], at, market_type)
     raise ValueError(f"operador desconocido: {name}")
