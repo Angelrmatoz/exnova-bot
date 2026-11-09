@@ -2,7 +2,6 @@ services:
   runner:
     image: ghcr.io/angelrmatoz/exnova-bot-runner:latest
     env_file: .env
-    command: ["--broker", "exnova"]
     environment:
       BOT_DB_PATH: /app/db/bot_data.db
     volumes:

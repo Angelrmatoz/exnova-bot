@@ -41,4 +41,4 @@ RUN mkdir -p /app/db && chown app:app /app/db
 USER app
 STOPSIGNAL SIGINT
 
-ENTRYPOINT ["python", "-m", "bot.scripts.normal_five"]
+ENTRYPOINT ["python", "-m", "bot.scripts.normal_five", "--broker", "iqoption"]
