@@ -311,7 +311,9 @@ class IqOptionWSClient:
 
     def _on_position_changed(self, data):
         raw = data.get("raw_event", {})
-        option = raw.get("binary_options_option_changed1", {})
+        option = (raw.get("binary_options_option_changed1")
+                  or raw.get("turbo_options_option_changed1")
+                  or {})
         option_id = option.get("option_id")
         if option_id is None:
             return
@@ -412,17 +414,18 @@ class IqOptionWSClient:
     def _subscribe_positions(self):
         if self.user_id is None or self.balance_id is None:
             return
-        self._send("subscribeMessage", {
-            "name": "portfolio.position-changed",
-            "version": "3.0",
-            "params": {
-                "routingFilters": {
-                    "user_id": self.user_id,
-                    "user_balance_id": self.balance_id,
-                    "instrument_type": "turbo-option",
-                }
-            },
-        })
+        for instrument in ("turbo-option", "binary-option"):
+            self._send("subscribeMessage", {
+                "name": "portfolio.position-changed",
+                "version": "3.0",
+                "params": {
+                    "routingFilters": {
+                        "user_id": self.user_id,
+                        "user_balance_id": self.balance_id,
+                        "instrument_type": instrument,
+                    }
+                },
+            })
 
     # ------------------------------------------------------------------ init
 
@@ -592,7 +595,7 @@ class IqOptionWSClient:
             "body": {
                 "user_id": int(self.user_id),
                 "user_balance_id": int(self.balance_id),
-                "instrument_types": ["turbo-option"],
+                "instrument_types": ["turbo-option", "binary-option"],
                 "offset": 0,
                 "limit": 50,
             },
@@ -603,7 +606,10 @@ class IqOptionWSClient:
         data = self._positions_data or {}
         items = data.get("positions", []) if isinstance(data, dict) else data
         for item in items:
-            option = item.get("raw_event", {}).get("binary_options_option_changed1", {})
+            raw = item.get("raw_event", {})
+            option = (raw.get("binary_options_option_changed1")
+                      or raw.get("turbo_options_option_changed1")
+                      or {})
             if option:
                 out.append(option)
         return out
@@ -663,7 +669,7 @@ class IqOptionWSClient:
                 pnl = (
                     0.0 if result in ("tie", "equal") else
                     float(x["amount"]) * -1 if result in ("lose", "loose") else
-                    float(x["profit_amount"])
+                    float(x["profit_amount"]) - float(x["amount"])
                 )
                 return result, pnl
             time.sleep(0.5)

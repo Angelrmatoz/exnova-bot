@@ -172,7 +172,7 @@ def test_check_result_win():
             "option_id": 7, "result": "win", "amount": 1.0, "profit_amount": 1.86}}})
     result, pnl = c.check_result("7", timeout=1)
     assert result == "win"
-    assert pnl == pytest.approx(1.86)
+    assert pnl == pytest.approx(0.86)
 
 
 def test_check_result_loose():

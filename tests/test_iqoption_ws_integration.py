@@ -53,7 +53,7 @@ def test_buy_and_check_result_win(iq_ws_client, iq_mock_server):
     iq_mock_server.push_position_changed(order_id, result="win", amount=1.0, profit_amount=1.86)
     result, pnl = iq_ws_client.check_result(order_id, timeout=2)
     assert result == "win"
-    assert pnl == pytest.approx(1.86)
+    assert pnl == pytest.approx(0.86)
 
 
 def test_buy_and_check_result_loose(iq_ws_client, iq_mock_server):
