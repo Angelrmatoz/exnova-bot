@@ -5,9 +5,9 @@ Variables: BOT_DB_PATH, SESSION_JOURNAL, DISCORD_WEBHOOK_URL.
 """
 
 import datetime
+import json
 import os
 import sqlite3
-import urllib.parse
 import urllib.request
 
 DB = os.environ.get("BOT_DB_PATH", "/app/db/bot_data.db")
@@ -23,8 +23,13 @@ def send(text: str) -> None:
         return
     if len(text) > 1900:
         text = text[:1900] + "\n  ..."
-    data = urllib.parse.urlencode({"content": text}).encode()
-    req = urllib.request.Request(WEBHOOK, data=data, method="POST")
+    req = urllib.request.Request(
+        WEBHOOK,
+        data=json.dumps({"content": text}).encode(),
+        method="POST",
+    )
+    req.add_header("Content-Type", "application/json")
+    req.add_header("User-Agent", "exnova-session-report/1.0")
     with urllib.request.urlopen(req, timeout=20) as r:
         print("discord:", r.status)
 
