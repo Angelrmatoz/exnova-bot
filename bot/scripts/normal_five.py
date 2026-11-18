@@ -15,7 +15,7 @@ from bot.db import get_win_rate, log_trade
 from bot.ml.features import build_features
 from bot.session import normalize_result, should_stop
 
-PAIRS = ("EURUSD-op", "NZDUSD-op", "EURGBP-op")
+PAIRS = ("EURUSD-op", "NZDUSD-op", "EURGBP-op", "GBPUSD-op", "CADCHF-op")
 HOURS_UTC = frozenset((8, 9, 10, 13))
 MARKET = "NORMAL"
 STEP = 300
