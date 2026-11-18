@@ -21,6 +21,9 @@ __pycache__/
 # Datos descargados y derivados (regenerables con fetch_history/build_features/multi_tf/pool)
 data/
 
+# Reportes generados (backtest-expert, comparaciones de broker; regenerables)
+reports/
+
 # Base de datos SQLite generada en runtime
 bot_data.db
 db/
