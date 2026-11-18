@@ -1,7 +1,7 @@
-"""Resumen post-sesion para Telegram: trades del dia, acumulado NORMAL, journal.
+"""Resumen post-sesion para Discord (webhook): trades del dia, acumulado, journal.
 
 Lo invoca systemd (exnova-check.timer) via deploy/check_session.sh.
-Variables: BOT_DB_PATH, SESSION_JOURNAL, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID.
+Variables: BOT_DB_PATH, SESSION_JOURNAL, DISCORD_WEBHOOK_URL.
 """
 
 import datetime
@@ -12,22 +12,21 @@ import urllib.request
 
 DB = os.environ.get("BOT_DB_PATH", "/app/db/bot_data.db")
 JOURNAL = os.environ.get("SESSION_JOURNAL", "/tmp/session_journal.txt")
-TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
-CHAT = os.environ.get("TELEGRAM_CHAT_ID", "")
+WEBHOOK = os.environ.get("DISCORD_WEBHOOK_URL", "")
 MIN_SAMPLE = 30
 
 
 def send(text: str) -> None:
-    if not TOKEN or not CHAT:
+    if not WEBHOOK:
         print(text)
-        print("sin TELEGRAM_TOKEN/CHAT_ID; no se envia")
+        print("sin DISCORD_WEBHOOK_URL; no se envia")
         return
-    url = "https://api.telegram.org/bot" + TOKEN + "/sendMessage"
-    data = urllib.parse.urlencode(
-        {"chat_id": CHAT, "text": text, "disable_notification": "false"}
-    ).encode()
-    with urllib.request.urlopen(urllib.request.Request(url, data=data), timeout=20) as r:
-        print("telegram:", r.status)
+    if len(text) > 1900:
+        text = text[:1900] + "\n  ..."
+    data = urllib.parse.urlencode({"content": text}).encode()
+    req = urllib.request.Request(WEBHOOK, data=data, method="POST")
+    with urllib.request.urlopen(req, timeout=20) as r:
+        print("discord:", r.status)
 
 
 def main() -> int:
