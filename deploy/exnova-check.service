@@ -1,5 +1,5 @@
 [Unit]
-Description=Resumen post-sesion del runner exnova (Telegram)
+Description=Resumen post-sesion del runner exnova (Discord webhook)
 Wants=network-online.target
 After=network-online.target
 
