@@ -3,6 +3,7 @@ services:
     image: ghcr.io/angelrmatoz/exnova-bot-runner:latest
     env_file: .env
     command: ["--stake", "1000"]
+    entrypoint: [python, -m, bot.scripts.normal_five, --broker, exnova]
     environment:
       BOT_DB_PATH: /app/db/bot_data.db
     volumes:
