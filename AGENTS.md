@@ -76,9 +76,10 @@ Verificar imports tras mover archivos: `uv run python -c "from <modulo> import .
 
 ## Operación Oracle y despliegue
 
-- **Timer:** `exnova-runner.timer` dispara `exnova-runner.service` a las **07:55 UTC**. El servicio hace `docker compose pull` de `:latest` y luego `docker compose run --rm -T runner`; el ENTRYPOINT de la imagen ya pasa `--broker iqoption` y compose fija `--stake 1000`.
-- **Pre-sesión (03:45 RD):** `systemctl list-timers exnova-runner.timer`, `systemctl is-active exnova-runner.service`, `docker compose ps`, `free -h`, `df -h`, `asset_hours.py` de los 3 pares, payout y evento macro del día.
+- **Timer:** `exnova-runner.timer` dispara `exnova-runner.service` a las **07:55 UTC**. El servicio hace `docker compose pull` de `:latest` y luego `docker compose run --rm -T runner`; el compose de Oracle fija `entrypoint` a `--broker exnova` (desde 18-nov, sin dependencia de `ssid`) y `command` a `--stake 10000`.
+- **Pre-sesión (03:45 RD):** `systemctl list-timers exnova-runner.timer`, `systemctl is-active exnova-runner.service`, `docker compose ps`, `free -h`, `df -h`, `asset_hours.py` de los 5 pares, payout y evento macro del día.
 - **Post-sesión:** `journalctl -u exnova-runner.service --since today`, revisar `trade_logs` de `NORMAL`, PnL y winrate. No cambiar la estrategia por una racha.
+- **Resumen automático:** `exnova-check.timer` (Mon–Vie 15:30 UTC en Oracle) corre `deploy/check_session.sh` + `bot/scripts/session_report.py`: hoy, acumulado, kill-switch y journal del día, vía Telegram; sin creds TG imprime al journal del servicio. `TELEGRAM_TOKEN`/`TELEGRAM_CHAT_ID` del `.env` siguen vacíos — pendiente del operador.
 - **Pull manual:** `cd /opt/exnova-bot && sudo -H -u ubuntu -g docker docker compose -f compose.runner.yml pull`.
 - **Rollback:** fijar en `compose.runner.yml` el tag `sha-<commit>` anterior, `pull`, `run --dry-run` y dejar el timer. No reactivar Windows sin desactivar antes el timer.
 - **Incidentes:** WS caído → revisar el reintento de velas; `pull` falla → usa la imagen cacheada; timer perdido → `systemctl start exnova-runner.service` solo si la ventana sigue abierta; DB → backup antes de tocar. **IQ ssid vencido** → `connect` devuelve `ssid inválido o sesión expirada`; sacar cookie nueva del navegador y actualizar `IQ_OPTION_SSID` en `/opt/exnova-bot/.env`.
@@ -103,6 +104,8 @@ Dockerfile.runner  # imagen slim del runner (multi-stage, non-root)
 requirements-runner.txt
 compose.runner.yml # servicio runner, env_file, volumen db, log rotation
 deploy/            # exnova-runner.service / exnova-runner.timer (Oracle systemd)
+                   # exnova-check.service / exnova-check.timer (resumen post-sesion 15:30 UTC)
+                   # check_session.sh (journal + DB -> Telegram/journal)
 .github/workflows/docker-runner.yml  # tests + build/push GHCR
 ├── schedule.py   # ventanas [inicio, fin] epoch UTC de initialization-data; is_open/next_close/next_open
 ├── db.py         # SQLite: model_versions (register_model); trade_logs (log_trade/log_trades) + get_today_pnl/get_loss_streak
