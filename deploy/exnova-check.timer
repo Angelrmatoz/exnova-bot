@@ -1,0 +1,10 @@
+[Unit]
+Description=Timer del resumen post-sesion exnova
+
+[Timer]
+OnCalendar=Mon..Fri 15:30 UTC
+Persistent=true
+Unit=exnova-check.service
+
+[Install]
+WantedBy=timers.target
