@@ -59,6 +59,28 @@ def entry_hour(clock: float) -> int:
     return time.gmtime(clock + STEP).tm_hour
 
 
+def side_outcomes(side: str, candles: list[dict], clock: int) -> dict[str, str]:
+    """Resultado papel de la senal a 5/10/15/30m (solo lectura de velas)."""
+    bars = {c["time"]: c for c in candles}
+    entry_bar = bars.get(clock + STEP)
+    if entry_bar is None:
+        return {}
+    entry = entry_bar["open"]
+    out = {}
+    for e in (5, 10, 15, 30):
+        bar = bars.get(clock + e * 60)
+        if bar is None:
+            continue
+        px = bar["close"]
+        if px == entry:
+            out[f"{e}m"] = "DRAW"
+        elif (side == "call") == (px > entry):
+            out[f"{e}m"] = "WIN"
+        else:
+            out[f"{e}m"] = "LOSS"
+    return out
+
+
 def scan(broker, pairs: list[str], clock: float) -> tuple[str, str, float] | None:
     for pair in pairs:
         try:
@@ -173,8 +195,13 @@ def main() -> int:
             losses += result == "LOSS"
             trades += 1
             pnl_total += pnl
+            snapshot = None
+            try:
+                snapshot = side_outcomes(side, broker.get_candles(pair, "5m", 30), clock) or None
+            except Exception:
+                pass
             log_trade(pair=pair, market_type=MARKET, signal=side, result=result, pnl=pnl,
-                      confidence=conf, gate_passed="exhaustion")
+                      confidence=conf, gate_passed="exhaustion", features_snapshot=snapshot)
             print(f"[{pair}] {side.upper()} -> {result} pnl {pnl:+.2f}  ({wins}W/{losses}L)", flush=True)
         print(f"=== NORMAL: {trades} ops, {wins}W {losses}L, pnl {pnl_total:+.2f}")
         return 0
