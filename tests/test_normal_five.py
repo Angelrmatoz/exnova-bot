@@ -1,6 +1,6 @@
 """Tests de la senal exhaustion de normal_five: la regla de trading activa."""
 
-from bot.scripts.normal_five import entry_hour, exhaustion_signal
+from bot.scripts.normal_five import entry_hour, exhaustion_signal, side_outcomes
 
 
 def _hist(mode="alt", n=59, final=None):
@@ -79,3 +79,40 @@ def test_entry_hour_usa_apertura_siguiente():
     assert entry_hour(28500) == 8
     assert entry_hour(35970) == 10
     assert entry_hour(46770) == 13
+
+
+C = 1795075200
+
+
+def _bars(closes: dict[int, float], entry: float = 1.10):
+    bars = [
+        {"time": C + 300, "open": entry, "close": closes.get(300, entry),
+         "high": entry, "low": entry}
+    ]
+    for off, close in closes.items():
+        if off == 300:
+            continue
+        bars.append({"time": C + off, "open": close, "close": close, "high": close, "low": close})
+    return bars
+
+
+def test_side_outcomes_put_completo():
+    bars = _bars({300: 1.09, 600: 1.08, 900: 1.10, 1800: 1.095})
+    out = side_outcomes("put", bars, C)
+    assert out == {"5m": "WIN", "10m": "WIN", "15m": "DRAW", "30m": "WIN"}
+
+
+def test_side_outcomes_call_espejo():
+    bars = _bars({300: 1.11, 600: 1.12, 900: 1.10, 1800: 1.105})
+    out = side_outcomes("call", bars, C)
+    assert out == {"5m": "WIN", "10m": "WIN", "15m": "DRAW", "30m": "WIN"}
+
+
+def test_side_outcomes_sin_velas_futuras():
+    bars = _bars({300: 1.09})
+    out = side_outcomes("put", bars, C)
+    assert out == {"5m": "WIN"}
+
+
+def test_side_outcomes_sin_vela_entrada():
+    assert side_outcomes("put", [], C) == {}
