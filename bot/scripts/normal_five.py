@@ -1,4 +1,4 @@
-"""Reversión 5m en NORMAL: exhaustion, 19-22 UTC, 5 pares.
+"""Reversión 5m en NORMAL: exhaustion, 08-10 + 13 UTC, 5 pares.
 
 uv run python -m bot.scripts.normal_five
 uv run python -m bot.scripts.normal_five --dry-run
