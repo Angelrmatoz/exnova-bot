@@ -15,11 +15,13 @@ def _db(path, rows):
         " market_type text, signal text, confidence real, gate_passed text,"
         " result text, pnl real, features_snapshot text, model_version_id integer)"
     )
-    for i, (ts, pair, sig, conf, result, pnl) in enumerate(rows, 1):
+    for i, row in enumerate(rows, 1):
+        ts, pair, sig, conf, result, pnl = row[:6]
+        snap = json.dumps(row[6]) if len(row) > 6 and row[6] else None
         c.execute(
             "insert into trade_logs (id, timestamp, pair, market_type, signal, confidence,"
-            " result, pnl) values (?,?,?,?,?,?,?,?)",
-            (i, ts, pair, "NORMAL", sig, conf, result, pnl),
+            " result, pnl, features_snapshot) values (?,?,?,?,?,?,?,?,?)",
+            (i, ts, pair, "NORMAL", sig, conf, result, pnl, snap),
         )
     c.commit()
     c.close()
@@ -68,6 +70,22 @@ def test_reporte_hoy_acumulado_y_kill_switch(tmp_path, monkeypatch, capsys):
     assert "z=2.02" in out
     assert "Acumulado NORMAL: 3 ops, 2W/1L" in out
     assert "Kill-switch: 3/30 resueltas" in out
+
+
+def test_side_outcomes_en_linea_del_trade(tmp_path, monkeypatch, capsys):
+    today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+    m = _reload(
+        monkeypatch, tmp_path,
+        [
+            (
+                f"{today}T08:45:00+00:00", "EURGBP-op", "call", 2.31, "LOSS", -10000.0,
+                {"5m": "WIN", "10m": "WIN", "15m": "LOSS", "30m": "LOSS"},
+            ),
+        ],
+    )
+    assert m.main() == 0
+    out = capsys.readouterr().out
+    assert "z=2.31  [5m=W/10m=W/15m=L/30m=L]" in out
 
 
 def test_webhook_post_json_con_user_agent(tmp_path, monkeypatch, capsys):

@@ -9,7 +9,7 @@ Bot autónomo de opciones binarias en **Exnova**, en Python (el adaptador IQ Opt
 - Fase 1 (entorno, menú, BrokerClient/ExnovaAdapter) **completa**.
 - Fase 2 (Machine Learning) **completa**: entrenamiento walk-forward, calibración, SHAP, export `.pkl`. Historial ✅, features ✅.
 - Fase 3.6 (segundo bróker) **completa**: IQ Option con `IqOptionAdapter` + `IqOptionWSClient` (misma familia Quadcode, auth por ssid de navegador). Validado end-to-end en DEMO real: 1m turbo, 15m y 30m binaria. El bróker no aporta precisión al modelo — solo transporte de datos y ejecución.
-- **Estado de señal (importante):** el backtest ML con 5m + features técnicos da ~50% accuracy y **expectancy negativa** (−0.08 a −0.17 con payout 80%). **ML descartado.** La única línea activa es **NORMAL 5m exhaustion** (ver `Context.md` §2): **5 pares** `EURUSD-op, NZDUSD-op, EURGBP-op, GBPUSD-op, CADCHF-op`, expiración **30m** (+ side-logging 5/10/15/30m), ventana operable **08:00–10:59 + 13:00–13:59 UTC**, payout Exnova **0,86** con `MIN_PAYOUT=0.86` (turbo: 0,84 en EURUSD/EURGBP/GBPUSD; NZDUSD turbo 0,30 inoperable; CADCHF sin turbo). **OTC cerrado definitivamente**: feed generado por el bróker, iid puro en 5m/1m/1s (evidencia `Context.md` §20). Forward: 9 resueltas 6W/3L a 19-nov.
+- **Estado de señal (importante):** el backtest ML con 5m + features técnicos da ~50% accuracy y **expectancy negativa** (−0.08 a −0.17 con payout 80%). **ML descartado.** La única línea activa es **NORMAL 5m exhaustion** (ver `Context.md` §2): **5 pares** `EURUSD-op, NZDUSD-op, EURGBP-op, GBPUSD-op, CADCHF-op`, expiración **30m** (+ side-logging 5/10/15/30m), ventana operable **08:00–10:59 + 13:00–13:59 UTC**, payout Exnova **0,86** con `MIN_PAYOUT=0.86` (turbo: 0,84 en EURUSD/EURGBP/GBPUSD; NZDUSD turbo 0,30 inoperable; CADCHF sin turbo). **OTC cerrado definitivamente**: feed generado por el bróker, iid puro en 5m/1m/1s (evidencia `Context.md` §20). Forward: 13 resueltas 8W/5L a 23-nov. **Filtro de eventos tier-1: descartado con datos** (día de evento h13 79,2 % vs 63,1 % limpio; `event_filter_study.py`).
 - **Producción (19-nov):** el runner corre en **Oracle Cloud**, no en la laptop. Imagen `ghcr.io/angelrmatoz/exnova-bot-runner:latest` (Docker/GHCR); `systemd` timer `exnova-runner.timer` a las **07:55 UTC** Mon–Vie. `compose.runner.yml` de Oracle fija `entrypoint` a `--broker exnova` y `--stake 10000`. Resumen post-sesión 15:30 UTC a **Discord** (`exnova-check.timer`). La tarea Windows `ExnovaNormal0813` está **deshabilitada** para evitar órdenes duplicadas. IQ queda como fallback con `ssid` (caduca; el actual está vencido). Detalle en `Context.md` §1 y §19–21.
 
 ## Entorno
@@ -20,7 +20,7 @@ Bot autónomo de opciones binarias en **Exnova**, en Python (el adaptador IQ Opt
 - **Producción:** Oracle Cloud Ubuntu, Docker 29.1.3 + Compose 2.40.3, 1 GB RAM + 2 GB swap, 48 GB disco. Runner en `/opt/exnova-bot`; host y llave SSH fuera del repo.
 - `plan.md` usa LF. Respeta el estilo de archivo existente.
 - Clave del layout de imports: corre siempre desde la raíz del repo (`uv run python -m ...`), nunca desde `bot/`.
-- Tests: `uv run pytest tests` (152 tests verdes; `pythonpath=["."]` ya configurado en pyproject.toml).
+- Tests: `uv run pytest tests` (169 tests verdes; `pythonpath=["."]` ya configurado en pyproject.toml).
 - Cuenta DEMO / PRACTICE. Zona operador UTC−4 (RD), bróker habla UTC. Estado vivo del proyecto en **`Context.md`** (handoff entre sesiones; actualizarlo al cerrar el día).
 
 ## Comandos
@@ -99,6 +99,7 @@ bot/
 │                 # train.py, calibrate.py, backtest.py, shap_analysis.py, export_model.py
 ├── scripts/      # fetch_history.py, build_features.py (CLIs con --in/--out); backtest_mock.py
 │                 # normal_five.py (runner activo: 5 pares, HOURS={8,9,10,13}, 30m, side-logging)
+│                 # signal_report.py (base/hora/z/mensual), event_filter_study.py (evento vs limpio)
 │                 # anchor_scan.py (mapa 172 anclas OTC, referencia); asset_hours.py (schedule en vivo)
 Dockerfile.runner  # imagen slim del runner (multi-stage, non-root)
 requirements-runner.txt

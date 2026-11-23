@@ -34,11 +34,23 @@ def send(text: str) -> None:
         print("discord:", r.status)
 
 
+def _side(snapshot) -> str:
+    """Resultado papel a 5/10/15/30m guardado por normal_five; '' si no hay."""
+    if not snapshot:
+        return ""
+    try:
+        data = json.loads(snapshot) if isinstance(snapshot, str) else snapshot
+        parts = [f"{k}={v[0]}" for k, v in data.items() if isinstance(v, str)]
+    except (ValueError, TypeError, AttributeError):
+        return ""
+    return f"  [{'/'.join(parts)}]" if parts else ""
+
+
 def main() -> int:
     today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
     conn = sqlite3.connect(DB)
     rows = conn.execute(
-        "select timestamp,pair,signal,confidence,result,pnl from trade_logs "
+        "select timestamp,pair,signal,confidence,result,pnl,features_snapshot from trade_logs "
         "where market_type='NORMAL' order by id"
     ).fetchall()
     today_rows = [r for r in rows if r[0][:10] == today]
@@ -53,7 +65,7 @@ def main() -> int:
         lines.append(f"Hoy: {len(today_rows)} ops, {tw}W/{tl}L, pnl {tp:+,.2f}")
         for r in today_rows:
             z = f" z={r[3]:.2f}" if r[3] else ""
-            lines.append(f"  {r[1]} {r[2]} {r[4]} {r[5]:+,.2f}{z}")
+            lines.append(f"  {r[1]} {r[2]} {r[4]} {r[5]:+,.2f}{z}{_side(r[6])}")
     else:
         lines.append("Hoy: sin operaciones")
     lines.append("")

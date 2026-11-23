@@ -2,7 +2,7 @@
 
 Sistema autónomo de opciones binarias en **Exnova** (el adaptador IQ Option queda como fallback). Ejecuta la estrategia **NORMAL 5m exhaustion** en un host Linux con Docker, imagen en GHCR, SQLite y control estricto de riesgo. Cuenta **DEMO / PRACTICE**.
 
-> **Estado de señal:** in-sample positivo (357 señales, 67,2 %) y forward en curso (9 resueltas, 6W/3L al 19-nov). Muestra forward **insuficiente**: el edge **no está confirmado**. Se opera solo en **DEMO**; no usar capital real hasta completar la validación.
+> **Estado de señal:** in-sample positivo (363 señales, 66,1 %) y forward en curso (13 resueltas, 8W/5L al 23-nov). Muestra forward **insuficiente**: el edge **no está confirmado**. Se opera solo en **DEMO**; no usar capital real hasta completar la validación.
 
 > **Riesgo:** las opciones binarias son instrumentos de alto riesgo. El bróker se trata como una dependencia intercambiable; el núcleo analítico no depende de él.
 
@@ -21,7 +21,7 @@ Sistema autónomo de opciones binarias en **Exnova** (el adaptador IQ Option que
 | Imagen | GHCR (`exnova-bot-runner`); compose de Oracle fuerza `--broker exnova` |
 | OTC | **Cerrado definitivamente**: feed generado por el bróker, iid en 5m/1m/1s |
 | ML | Descartado: ~50 % accuracy, expectancy negativa |
-| Tests | **168 verdes** en GitHub Actions |
+| Tests | **169 verdes** en GitHub Actions |
 
 ## Qué hace
 
@@ -121,6 +121,7 @@ uv run pytest tests
 uv run python -m bot.scripts.normal_five --broker exnova --dry-run
 uv run python -m bot.scripts.asset_hours EURUSD-op NZDUSD-op EURGBP-op GBPUSD-op CADCHF-op --hours 14
 uv run python -m bot.scripts.signal_report          # base, horas, buckets z, robustez mensual
+uv run python -m bot.scripts.event_filter_study     # dia de evento tier-1 vs dia limpio
 ```
 
 ### Construir la imagen del runner
@@ -135,8 +136,8 @@ docker build -f Dockerfile.runner -t ghcr.io/<owner>/exnova-bot-runner:local .
 bot/
 ├── broker/       # BrokerClient, ExnovaAdapter/WS, IqOptionAdapter/WS, Mock
 ├── ml/           # features, multi_tf, train, calibrate, backtest, shap, export
-├── scripts/      # normal_five, session_report, signal_report, fetch_history,
-│                 # build_features, asset_hours, backtest_mock
+├── scripts/      # normal_five, session_report, signal_report, event_filter_study,
+│                 # fetch_history, build_features, asset_hours, backtest_mock
 ├── db.py         # SQLite: model_versions + trade_logs
 ├── config.py     # .env: Exnova + IQ Option
 ├── history.py    # paginación de velas
@@ -157,8 +158,9 @@ main.py                        # menú interactivo
 
 - 22 CSV 5m (11 `-op` + 11 `-OTC`) ene–nov 2026; 1m de 6 pares (21–63 días). `data/` no se versiona.
 - IQ expone **273 binarias + 255 turbo**; Exnova **262 + 242**. Solo 22 activos tienen historia local.
-- In-sample (5 pares, horas de producción): **357 señales, 67,2 %**, Wilson 62,2–71,9 %; racha perdedora máx 4.
-- Forward real: **9 resueltas, 6W/3L (66,7 %)**; kill-switch 9/30.
+- In-sample (5 pares, horas de producción, datos al 23-nov): **363 señales, 66,1 %**; z≥2,2 **69,2 %** (n=237) vs z 2,0–2,2 60,3 %.
+- Forward real: **13 resueltas, 8W/5L (61,5 %)**; kill-switch 13/30.
+- Filtro de eventos tier-1: **descartado con datos**; hora 13 en día de evento 79,2 % (n=24) vs 63,1 % limpio (n=111).
 - Side-logging: cada trade real guarda su resultado papel a **5/10/15/30m** para decidir la expiración por par con OOS.
 - Expiración: zona buena 5–30m; ≥60m descartado en los 5 pares. Turbo: 0,84 en 3 pares; NZDUSD sin turbo viable.
 - OTC: cerrado; iid puro (autocorrelación ≈0, sin clustering de volatilidad, rachas consistentes con azar).
