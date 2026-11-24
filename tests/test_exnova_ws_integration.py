@@ -108,6 +108,16 @@ def test_reconnect_after_forced_disconnect(ws_client, mock_server):
     assert ws_client.server_timestamp > 0
 
 
+def test_get_candles_espera_reconexion(ws_client, mock_server):
+    connect(ws_client)
+    ws_client._reconnect_backoff = 0.1
+    ws_client._max_backoff = 0.2
+    mock_server.force_disconnect()
+    assert wait_for(lambda: not ws_client._connected.is_set(), timeout=2)
+    candles = ws_client.get_candles("USD-OTC", "5m", 10)
+    assert len(candles) == len(mock_server.candles)
+
+
 def test_profile_setoptions_sent_on_connect(ws_client, mock_server):
     connect(ws_client)
     names = [m.get("name") for m in mock_server.received]
