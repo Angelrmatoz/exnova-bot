@@ -256,6 +256,11 @@ class ExnovaWSClient:
     def check_connect(self) -> bool:
         return self._connected.is_set()
 
+    def _wait_connected(self, timeout: float = 20.0) -> None:
+        """Espera la reconexión automática antes de enviar; evita el socket cerrado."""
+        if not self._connected.wait(timeout):
+            raise TimeoutError("websocket de Exnova desconectado")
+
     # --------------------------------------------------------------- sending
 
     def _send_raw(self, data):
@@ -364,6 +369,7 @@ class ExnovaWSClient:
         raise ValueError(f"activo no encontrado: {pair}") from None
 
     def get_candles(self, pair: str, timeframe: str, count: int, endtime: int | None = None) -> list[dict]:
+        self._wait_connected()
         interval = self._to_seconds(timeframe)
         if endtime is None:
             endtime = int(self.server_timestamp)
@@ -473,6 +479,7 @@ class ExnovaWSClient:
     # --------------------------------------------------------------- trading
 
     def buy(self, pair: str, side: str, amount: float, duration: str) -> tuple[bool, str | None]:
+        self._wait_connected()
         req_id = str(random.randint(0, 10000))
         minutes = self._to_minutes(duration)
         exp, idx = get_expiration_time(int(self.server_timestamp), minutes)
@@ -530,6 +537,7 @@ class ExnovaWSClient:
     # -------------------------------------------------------------- balance
 
     def get_balances(self, timeout: int = 10) -> list[dict]:
+        self._wait_connected()
         self._balances_data = None
         self._balances_event.clear()
         self._send("sendMessage", {"name": "get-balances", "version": "1.0"})
