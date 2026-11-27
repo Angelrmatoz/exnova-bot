@@ -23,6 +23,7 @@ MIN_PAYOUT = 0.86
 MIN_SAMPLE = 30
 MIN_WIN_RATE = 0.56
 IDLE_LIMIT = 30 * 60
+MAX_SIGNAL_AGE = 10 * 60
 
 
 def exhaustion_signal(hist: list[dict]) -> tuple[str, float] | None:
@@ -57,6 +58,11 @@ def exhaustion_signal(hist: list[dict]) -> tuple[str, float] | None:
 
 def entry_hour(clock: float) -> int:
     return time.gmtime(clock + STEP).tm_hour
+
+
+def signal_is_fresh(clock: float, now: float, max_age: int = MAX_SIGNAL_AGE) -> bool:
+    """False si la vela cerrada es vieja (corte WS, datos atrasados)."""
+    return now - clock <= max_age
 
 
 def side_outcomes(side: str, candles: list[dict], clock: int) -> dict[str, str]:
@@ -177,6 +183,9 @@ def main() -> int:
                     break
                 time.sleep(5)
                 continue
+            if not signal_is_fresh(clock, time.time()):
+                print(f"vela {clock:.0f} vieja; se omite.", flush=True)
+                continue
             found = scan(broker, pairs, clock)
             if found is None:
                 print(f"vela {clock:.0f}: sin setup.", flush=True)
@@ -187,7 +196,8 @@ def main() -> int:
                 continue
             order_id = broker.place_order(pair, side, stake, "30m")
             if order_id is None:
-                print(f"[{pair}] orden rechazada; fin.")
+                reason = broker.last_order_error or "motivo desconocido"
+                print(f"[{pair}] orden no confirmada: {reason}; fin.", flush=True)
                 break
             result, pnl = broker.check_result(order_id, timeout=2400)
             result = normalize_result(result)

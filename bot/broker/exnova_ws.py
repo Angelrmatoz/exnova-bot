@@ -79,6 +79,9 @@ def get_expiration_time(timestamp, duration):
 class ExnovaWSClient:
     """Cliente WebSocket mínimo de Exnova con reconexión automática."""
 
+    _BUY_TIMEOUT = 10.0
+    _BUY_CONFIRM_GRACE = 2.0
+
     def __init__(self, email: str, password: str, account_type: str = "PRACTICE"):
         self.email = email
         self.password = password
@@ -496,15 +499,21 @@ class ExnovaWSClient:
         self._buy_option = {}
         self._send("sendMessage", {"name": "binary-options.open-option", "version": "1.0", "body": body}, request_id=req_id)
         start = time.time()
-        while time.time() - start < 10:
+        while time.time() - start < self._BUY_TIMEOUT:
             option = self._buy_option.get(req_id, {})
             if "message" in option:
                 return False, option["message"]
-            if self._buy_result is not None and "id" in option:
-                return self._buy_result, option["id"]
+            if "id" in option:
+                if self._buy_result is not None:
+                    if self._buy_result:
+                        return True, option["id"]
+                    return False, "rechazo del servidor"
+                if time.time() - start > self._BUY_CONFIRM_GRACE:
+                    logger.warning("buy sin 'result' para %s; id %s confirmado por 'option'", pair, option["id"])
+                    return True, option["id"]
             time.sleep(0.05)
         logger.warning("buy timeout para %s", pair)
-        return False, None
+        return False, "sin confirmación"
 
     def check_result(self, order_id: str, timeout: float = 120.0) -> tuple[str, float]:
         start = time.time()

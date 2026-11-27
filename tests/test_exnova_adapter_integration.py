@@ -57,6 +57,13 @@ def test_adapter_buy_and_result(adapter):
     assert pnl == pytest.approx(-1.0)
 
 
+def test_adapter_guarda_motivo_sin_confirmacion(adapter, monkeypatch):
+    _connect(adapter)
+    monkeypatch.setattr(adapter._client, "buy", lambda *a, **k: (False, "sin confirmación"))
+    assert adapter.place_order("USD-OTC", "call", 1.0, "1m") is None
+    assert adapter.last_order_error == "sin confirmación"
+
+
 def test_adapter_balance_and_payout(adapter):
     _connect(adapter)
     assert adapter.get_balance() == pytest.approx(10000.0)

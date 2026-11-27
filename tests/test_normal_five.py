@@ -1,6 +1,6 @@
 """Tests de la senal exhaustion de normal_five: la regla de trading activa."""
 
-from bot.scripts.normal_five import entry_hour, exhaustion_signal, side_outcomes
+from bot.scripts.normal_five import entry_hour, exhaustion_signal, side_outcomes, signal_is_fresh
 
 
 def _hist(mode="alt", n=59, final=None):
@@ -116,3 +116,8 @@ def test_side_outcomes_sin_velas_futuras():
 
 def test_side_outcomes_sin_vela_entrada():
     assert side_outcomes("put", [], C) == {}
+
+
+def test_signal_is_fresh():
+    assert signal_is_fresh(1000, 1000 + 599)
+    assert not signal_is_fresh(1000, 1000 + 601)

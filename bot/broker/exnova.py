@@ -4,9 +4,15 @@ El núcleo del bot solo conoce BrokerClient; jamás importa exnovaapi directamen
 Cambiar de bróker = nuevo adapter.
 """
 
+from __future__ import annotations
+
+import logging
+
 from bot.broker.base import BrokerClient
 from bot.broker.exnova_ws import ExnovaWSClient
 from bot.schedule import is_open as schedule_is_open
+
+logger = logging.getLogger(__name__)
 
 
 class ExnovaAdapter(BrokerClient):
@@ -39,8 +45,13 @@ class ExnovaAdapter(BrokerClient):
         return sorted(a for a in assets if not a.endswith("-OTC"))
 
     def place_order(self, pair: str, side: str, amount: float, duration: str) -> str | None:
-        ok, order_id = self._client.buy(pair, side, amount, duration)
-        return order_id if ok else None
+        ok, detail = self._client.buy(pair, side, amount, duration)
+        if ok:
+            self.last_order_error = None
+            return detail
+        self.last_order_error = detail or "sin confirmación"
+        logger.warning("orden %s %s no abierta: %s", side, pair, self.last_order_error)
+        return None
 
     def check_result(self, order_id: str, timeout: float = 1500.0) -> tuple[str, float]:
         # 1500s cubre la binaria de 900s y su entrada tardía (grid de 15m:
