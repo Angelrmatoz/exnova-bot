@@ -67,6 +67,7 @@ class MockExnovaServer:
         self.candles = DEFAULT_CANDLES
         self.init_all = None
         self.subscriptions = []
+        self.send_result = True
 
         self._threads.append(threading.Thread(target=self._accept_loop, daemon=True))
         self._threads[-1].start()
@@ -151,7 +152,8 @@ class MockExnovaServer:
     def _deliver_offer(self, conn, req_id):
         order = {"id": f"result-{req_id}", "msg": {"win": "loose", "sum": 1.0, "win_amount": 0}}
         conn.send_json({"name": "option", "msg": {"id": order["id"]}, "request_id": req_id})
-        conn.send_json({"name": "result", "msg": {"success": True}, "request_id": req_id})
+        if self.send_result:
+            conn.send_json({"name": "result", "msg": {"success": True}, "request_id": req_id})
         conn.send_json({"name": "socket-option-closed", "msg": order, "request_id": req_id})
 
     @staticmethod

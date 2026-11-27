@@ -11,6 +11,8 @@ from typing import Any
 class BrokerClient(ABC):
     """Contrato mínimo desacoplado de cualquier bróker específico."""
 
+    last_order_error: str | None = None
+
     @abstractmethod
     def get_candles(self, pair: str, timeframe: str, count: int) -> list[dict[str, Any]]:
         """Devuelve velas históricas del par como lista de dicts."""
@@ -21,7 +23,7 @@ class BrokerClient(ABC):
 
     @abstractmethod
     def place_order(self, pair: str, side: str, amount: float, duration: str) -> Any:
-        """Envía una orden. Devuelve identificador de la operación o None si falla."""
+        """Envía una orden. Devuelve identificador o None; motivo en last_order_error."""
 
     @abstractmethod
     def get_balance(self) -> float:

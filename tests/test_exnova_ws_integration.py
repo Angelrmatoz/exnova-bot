@@ -72,6 +72,25 @@ def test_buy_and_check_result(ws_client, mock_server):
     assert pnl == pytest.approx(-1.0)
 
 
+def test_buy_confirma_por_option_sin_result(ws_client, mock_server, monkeypatch):
+    connect(ws_client)
+    mock_server.send_result = False
+    monkeypatch.setattr(ws_client, "_BUY_CONFIRM_GRACE", 0.1)
+    ok, order_id = ws_client.buy("USD-OTC", "call", 1.0, "1m")
+    assert ok is True
+    assert order_id.startswith("result-")
+
+
+def test_buy_sin_respuesta_es_sin_confirmacion(ws_client, mock_server, monkeypatch):
+    connect(ws_client)
+    ws_client._actives = {"USD-OTC": 2}
+    monkeypatch.setattr(ws_client, "_BUY_TIMEOUT", 0.1)
+    monkeypatch.setattr(ws_client, "_send", lambda *a, **k: None)
+    ok, detail = ws_client.buy("USD-OTC", "call", 1.0, "1m")
+    assert ok is False
+    assert detail == "sin confirmación"
+
+
 def test_sell(ws_client):
     connect(ws_client)
     assert ws_client.sell(["op-1"]) == []
