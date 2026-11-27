@@ -1,5 +1,9 @@
 """Reporte de la senal exhaustion sobre CSVs 5m locales. Read-only.
 
+La resolucion usa la grilla real de expiracion de Exnova (25/30/35m desde la
+entrada), no un 30m fijo: esa diferencia cambia ~11% de los resultados.
+`win30` conserva el calculo viejo para comparar.
+
 uv run python -m bot.scripts.signal_report
 uv run python -m bot.scripts.signal_report --pairs EURUSD-op
 """
@@ -9,6 +13,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from bot.broker.exnova_ws import get_expiration_time
 from bot.ml.features import build_features
 
 DATA = Path("data/5m")
@@ -48,18 +53,27 @@ def load_signals(pair: str) -> pd.DataFrame:
     s["entry"] = f["open"].shift(-1)[s.index]
     s["expiry"] = f["close"].shift(-6)[s.index]
     s = s.dropna(subset=["entry", "expiry"])
-    s["win"] = (s["side"].eq("call") & (s["expiry"] > s["entry"])) | (
+    s["win30"] = (s["side"].eq("call") & (s["expiry"] > s["entry"])) | (
         s["side"].eq("put") & (s["expiry"] < s["entry"])
     )
+    close_map = dict(zip(df["time"], df["close"]))
+    s["grid_expiry"] = [get_expiration_time(int(t) + 300, 30)[0] for t in s["time"]]
+    s["grid_price"] = [close_map.get(e - 300) for e in s["grid_expiry"]]
+    has = s["grid_price"].notna()
+    s["win"] = s["win30"].copy()
+    s.loc[has, "win"] = [
+        (side == "call" and px > entry) or (side == "put" and px < entry)
+        for side, px, entry in zip(s.loc[has, "side"], s.loc[has, "grid_price"], s.loc[has, "entry"])
+    ]
     return s
 
 
-def _agg(sel: pd.DataFrame, label: str) -> None:
+def _agg(sel: pd.DataFrame, label: str, col: str = "win") -> None:
     n = len(sel)
     if n == 0:
         print(f"{label:<24} n=0")
         return
-    w = sel["win"].mean()
+    w = sel[col].mean()
     exp = w * PAYOUT - (1 - w)
     print(f"{label:<24} n={n:>4}  win={w:6.1%}  exp86={exp:+.3f}")
 
@@ -93,7 +107,8 @@ def main() -> int:
     print(f"=== base (horas {sorted(HOURS)}) ===")
     for p, f in frames.items():
         _agg(f[f["hour"].isin(HOURS)], p)
-    _agg(prod, "TOTAL")
+    _agg(prod, "TOTAL (grilla Exnova)")
+    _agg(prod, "TOTAL (fijo 30m)", "win30")
 
     print("\n=== hora ===")
     for h in sorted(set(prod["hour"])):

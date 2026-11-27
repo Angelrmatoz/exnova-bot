@@ -2,7 +2,7 @@
 
 Sistema autónomo de opciones binarias en **Exnova** (el adaptador IQ Option queda como fallback). Ejecuta la estrategia **NORMAL 5m exhaustion** en un host Linux con Docker, imagen en GHCR, SQLite y control estricto de riesgo. Cuenta **DEMO / PRACTICE**.
 
-> **Estado de señal:** in-sample positivo (363 señales, 66,1 %) y forward en curso (13 resueltas, 8W/5L al 23-nov). Muestra forward **insuficiente**: el edge **no está confirmado**. Se opera solo en **DEMO**; no usar capital real hasta completar la validación.
+> **Estado de señal:** in-sample positivo (359 señales, **62,7 %** con la grilla real de Exnova) y forward en curso (16 resueltas, 10W/6L al 26-nov). Muestra forward **insuficiente**: el edge **no está confirmado**. Se opera solo en **DEMO**; no usar capital real hasta completar la validación.
 
 > **Riesgo:** las opciones binarias son instrumentos de alto riesgo. El bróker se trata como una dependencia intercambiable; el núcleo analítico no depende de él.
 
@@ -158,9 +158,9 @@ main.py                        # menú interactivo
 
 - 22 CSV 5m (11 `-op` + 11 `-OTC`) ene–nov 2026; 1m de 6 pares (21–63 días). `data/` no se versiona.
 - IQ expone **273 binarias + 255 turbo**; Exnova **262 + 242**. Solo 22 activos tienen historia local.
-- In-sample (5 pares, horas de producción, datos al 23-nov): **363 señales, 66,1 %**; z≥2,2 **69,2 %** (n=237) vs z 2,0–2,2 60,3 %.
-- Forward real: **13 resueltas, 8W/5L (61,5 %)**; kill-switch 13/30.
-- Filtro de eventos tier-1: **descartado con datos**; hora 13 en día de evento 79,2 % (n=24) vs 63,1 % limpio (n=111).
+- In-sample (5 pares, horas de producción, datos al 27-nov, resolución en grilla): **359 señales, 62,7 %**; z≥2,2 **64,4 %** vs z<2,2 59,5 %. El cálculo viejo a 30m fijo daba 66,0 % — sobreestimaba 3,3 pp.
+- Forward real: **16 resueltas, 10W/6L (62,5 %)**; kill-switch 16/30. Coincide con el backtest corregido.
+- Filtro de eventos tier-1: **descartado**; con resolución en grilla, hora 13 en día de evento 66,7 % vs 66,7 % limpio (neutral).
 - Side-logging: cada trade real guarda su resultado papel a **5/10/15/30m** para decidir la expiración por par con OOS.
 - Expiración: zona buena 5–30m; ≥60m descartado en los 5 pares. Turbo: 0,84 en 3 pares; NZDUSD sin turbo viable.
 - OTC: cerrado; iid puro (autocorrelación ≈0, sin clustering de volatilidad, rachas consistentes con azar).
